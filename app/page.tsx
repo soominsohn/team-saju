@@ -84,7 +84,7 @@ function TeamPlanner() {
 
       const data: ApiResponse = await response.json();
       setResult({ ...data, pairs: data.pairs ?? [] });
-      setShareToken(tokenInput || data.shareToken || null);
+      setShareToken(data.shareToken || null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다");
     } finally {
