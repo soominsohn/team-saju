@@ -10,6 +10,8 @@ const HEIGHT = 260;
 export type GraphMember = {
   id: string;
   name: string;
+  x?: number;
+  y?: number;
 };
 
 export type GraphPair = {
@@ -28,19 +30,19 @@ const scoreColor = (score: number) => {
 export function CompatibilityGraph({ members, pairs }: { members: GraphMember[]; pairs: GraphPair[] }) {
   const { nodes, links } = useMemo(() => {
     if (!members.length) return { nodes: [], links: [] };
-    const nodeMap = members.map((member) => ({ ...member })) as (GraphMember & SimulationNodeDatum)[];
+    const nodeMap = members.map((member) => ({ ...member, x: 0, y: 0 }));
     const linkData = pairs.map((pair) => ({
       source: pair.memberA,
       target: pair.memberB,
       score: pair.score,
-    })) as (SimulationLinkDatum<GraphMember> & { score: number })[];
+    }));
 
     const sim = forceSimulation(nodeMap)
       .force(
         "link",
         forceLink(linkData)
-          .id((d) => (d as GraphMember).id)
-          .distance((d) => Math.max(40, 120 - (d as unknown as { score: number }).score)),
+          .id((d: any) => d.id)
+          .distance((d: any) => Math.max(40, 120 - d.score)),
       )
       .force("charge", forceManyBody().strength(-120))
       .force("center", forceCenter(WIDTH / 2, HEIGHT / 2))
