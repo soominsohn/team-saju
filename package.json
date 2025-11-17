@@ -1,0 +1,39 @@
+{
+  "name": "team-saju",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:seed": "prisma db seed",
+    "docker:down": "docker compose down"
+  },
+  "dependencies": {
+    "@prisma/client": "5.11.0",
+    "@types/d3-force": "^3.0.10",
+    "d3-force": "^3.0.0",
+    "next": "14.2.3",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "recharts": "^3.4.1",
+    "zod": "3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "20.11.25",
+    "@types/react": "18.2.62",
+    "autoprefixer": "10.4.17",
+    "postcss": "8.4.35",
+    "prisma": "5.11.0",
+    "tailwindcss": "3.4.1",
+    "tsx": "^4.20.6",
+    "typescript": "5.4.3",
+    "vitest": "1.4.0"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

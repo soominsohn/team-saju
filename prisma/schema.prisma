@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+ datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  purpose     String?
+  ownerId     String?
+  shareToken  String   @unique
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  members     Member[]
+  teamScores  TeamScore?
+  pairScores  PairScore[]
+}
+
+model Member {
+  id          String   @id @default(cuid())
+  teamId      String
+  displayName String
+  gender      String?
+  birthDate   DateTime
+  birthTime   String?
+  timezone    String   @default("Asia/Seoul")
+  createdAt   DateTime @default(now())
+  team        Team     @relation(fields: [teamId], references: [id])
+  chart       Chart?
+  elements    ElementProfile?
+}
+
+model Chart {
+  id          String        @id @default(cuid())
+  memberId    String        @unique
+  yearStem    String
+  yearBranch  String
+  monthStem   String
+  monthBranch String
+  dayStem     String
+  dayBranch   String
+  hourStem    String?
+  hourBranch  String?
+  createdAt   DateTime      @default(now())
+  member      Member        @relation(fields: [memberId], references: [id])
+}
+
+model ElementProfile {
+  id        String  @id @default(cuid())
+  memberId  String  @unique
+  wood      Float
+  fire      Float
+  earth     Float
+  metal     Float
+  water     Float
+  dominant  String
+  createdAt DateTime @default(now())
+  member    Member   @relation(fields: [memberId], references: [id])
+}
+
+model PairScore {
+  id        String   @id @default(cuid())
+  teamId    String
+  memberA   String
+  memberB   String
+  score     Float
+  strengths String[]
+  risks     String[]
+  createdAt DateTime @default(now())
+  team      Team     @relation(fields: [teamId], references: [id])
+}
+
+model TeamScore {
+  id            String   @id @default(cuid())
+  teamId        String   @unique
+  balanceIdx    Float
+  nourishIdx    Float
+  conflictIdx   Float
+  roleCoverage  Float
+  finalScore    Float
+  createdAt     DateTime @default(now())
+  team          Team     @relation(fields: [teamId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actor     String
+  action    String
+  target    String?
+  createdAt DateTime @default(now())
+}
