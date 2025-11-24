@@ -5,6 +5,8 @@ import type { TeamIndices } from "@/lib/team";
 export type MemberReport = {
   memberId: string;
   displayName: string;
+  birthDate: string;
+  birthTime?: string;
   dominant: string;
   profile: Record<string, number>;
   insights: {

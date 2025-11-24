@@ -73,6 +73,8 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
     const memberDetails: {
       memberId: string;
       displayName: string;
+      birthDate: string;
+      birthTime?: string;
       dominant: string;
       profile: ReturnType<typeof profileToRecord>;
       insights: ReturnType<typeof profileInsights>;
@@ -125,6 +127,8 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
       memberDetails.push({
         memberId: memberRecord.id,
         displayName: member.displayName,
+        birthDate: member.birthDate,
+        birthTime: member.birthTime,
         dominant,
         profile: profileToRecord(profile),
         insights,
@@ -243,6 +247,8 @@ export async function getTeamReport(teamId: string, shareToken?: string) {
     return {
       memberId: member.id,
       displayName: member.displayName,
+      birthDate: member.birthDate.toISOString().split('T')[0], // YYYY-MM-DD format
+      birthTime: member.birthTime || undefined,
       dominant: member.elements?.dominant ?? "unknown",
       profile,
       insights,

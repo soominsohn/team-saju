@@ -31,10 +31,12 @@ export function ResultPanel({
   result,
   shareToken,
   shareMode = "inline",
+  onEdit,
 }: {
   result: TeamReportResponse;
   shareToken: string | null;
   shareMode?: "inline" | "minimal";
+  onEdit?: () => void;
 }) {
   const aggregatedProfiles = useMemo(() => result.members.map((member) => member.profile), [result]);
   const graphMembers = useMemo(
@@ -51,9 +53,20 @@ export function ResultPanel({
             <h3 className="text-xl font-semibold">{result.teamName}</h3>
             {result.purpose && <p className="text-slate-500">목적: {result.purpose}</p>}
           </div>
-          {shareToken && shareMode === "inline" && (
-            <ShareLink teamId={result.teamId} token={shareToken} />
-          )}
+          <div className="flex flex-col items-end gap-2">
+            {onEdit && (
+              <button
+                type="button"
+                onClick={onEdit}
+                className="px-3 py-1 bg-slate-700 text-white text-sm rounded hover:bg-slate-800"
+              >
+                팀원 추가/수정
+              </button>
+            )}
+            {shareToken && shareMode === "inline" && (
+              <ShareLink teamId={result.teamId} token={shareToken} />
+            )}
+          </div>
         </div>
       </header>
       <section className="grid grid-cols-2 gap-3 text-sm">
