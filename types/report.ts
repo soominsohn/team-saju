@@ -1,6 +1,7 @@
 import type { Element, TenGod } from "@/lib/elements";
 import type { BranchRelationInsight } from "@/lib/relations";
 import type { TeamIndices } from "@/lib/team";
+import type { RoleProfile, TeamRoleDistribution } from "@/lib/roles";
 
 export type MemberReport = {
   memberId: string;
@@ -24,6 +25,7 @@ export type MemberReport = {
     skewed: Element[];
   };
   tenGodHighlights: TenGod[];
+  role?: RoleProfile;
 };
 
 export type PairReport = {
@@ -45,4 +47,5 @@ export type TeamReportResponse = {
   dynamics?: {
     branchRelations: BranchRelationInsight[];
   };
+  roleDistribution?: TeamRoleDistribution;
 };

@@ -18,6 +18,7 @@ import { computePairCompatibility } from "@/lib/compat";
 import { prisma } from "@/lib/prisma";
 import { analyzeBranchRelations } from "@/lib/relations";
 import { scoreTeam } from "@/lib/team";
+import { deriveRole, analyzeTeamRoles, type RoleProfile } from "@/lib/roles";
 
 const memberInputSchema = z.object({
   displayName: z.string().min(1).max(50),
@@ -89,6 +90,7 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
       };
       insights: ReturnType<typeof profileInsights>;
       tenGodHighlights: string[];
+      role: RoleProfile;
       dayBranch: EarthlyBranch;
     }[] = [];
 
@@ -100,7 +102,9 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
       const profile = calculateElementProfile(chart);
       const insights = profileInsights(profile);
       const dominant = dominantElement(profile);
-      const tenGodHighlights = topTenGods(summarizeTenGods(chart));
+      const tenGodProfile = summarizeTenGods(chart);
+      const tenGodHighlights = topTenGods(tenGodProfile);
+      const role = deriveRole(chart, profile, tenGodProfile);
 
       const memberRecord = await tx.member.create({
         data: {
@@ -153,6 +157,7 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
         },
         insights,
         tenGodHighlights,
+        role,
         dayBranch: chart.dayBranch,
       });
     }
@@ -205,6 +210,10 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
       })),
     );
 
+    // 팀 역할 분포 분석
+    const roleProfiles = memberDetails.map((member) => member.role);
+    const roleDistribution = analyzeTeamRoles(roleProfiles);
+
     const publicMembers = memberDetails.map(({ dayBranch, ...rest }) => rest);
 
     return {
@@ -215,6 +224,7 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
       dynamics: {
         branchRelations,
       },
+      roleDistribution,
     };
   });
 }
@@ -256,7 +266,10 @@ export async function getTeamReport(teamId: string, shareToken?: string) {
       : { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
     const insights = profileInsights(profile);
     const chart = mapChartRecord(member.chart as any);
-    const tenGodHighlights = chart ? topTenGods(summarizeTenGods(chart)) : [];
+    const tenGodProfile = chart ? summarizeTenGods(chart) : undefined;
+    const tenGodHighlights = tenGodProfile ? topTenGods(tenGodProfile) : [];
+    const role = chart && tenGodProfile ? deriveRole(chart, profile, tenGodProfile) : undefined;
+
     if (chart) {
       relationSeeds.push({
         memberId: member.id,
@@ -283,6 +296,7 @@ export async function getTeamReport(teamId: string, shareToken?: string) {
       } : undefined,
       insights,
       tenGodHighlights,
+      role,
     };
   });
 
@@ -307,6 +321,12 @@ export async function getTeamReport(teamId: string, shareToken?: string) {
 
   const branchRelations = analyzeBranchRelations(relationSeeds);
 
+  // 팀 역할 분포 분석
+  const roleProfiles = memberSummaries
+    .map((member) => member.role)
+    .filter((role): role is RoleProfile => role !== undefined);
+  const roleDistribution = roleProfiles.length > 0 ? analyzeTeamRoles(roleProfiles) : undefined;
+
   return {
     team: {
       id: team.id,
@@ -320,5 +340,6 @@ export async function getTeamReport(teamId: string, shareToken?: string) {
     dynamics: {
       branchRelations,
     },
+    roleDistribution,
   };
 }

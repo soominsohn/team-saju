@@ -44,6 +44,7 @@ export async function POST(request: Request) {
         risks: pair.risks,
       })),
       dynamics: result.dynamics,
+      roleDistribution: result.roleDistribution,
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {

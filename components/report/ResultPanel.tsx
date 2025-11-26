@@ -5,6 +5,8 @@ import { useMemo, useState } from "react";
 import { CompatibilityGraph } from "@/components/charts/CompatibilityGraph";
 import { MemberRadar } from "@/components/charts/MemberRadar";
 import { TeamElementPie } from "@/components/charts/TeamElementPie";
+import { RoleCard } from "@/components/report/RoleCard";
+import { TeamRoleDistributionView } from "@/components/report/TeamRoleDistribution";
 import { getElementLabel } from "@/lib/elements";
 import type { TeamReportResponse } from "@/types/report";
 
@@ -119,6 +121,25 @@ export function ResultPanel({
           />
         </div>
       </section>
+      {/* 팀 역할 분포 */}
+      {result.roleDistribution && (
+        <section className="grid md:grid-cols-3 gap-4">
+          <div className="md:col-span-1">
+            <h4 className="font-semibold mb-2">팀 역할 분포</h4>
+            <TeamRoleDistributionView distribution={result.roleDistribution} />
+          </div>
+          <div className="md:col-span-2">
+            <h4 className="font-semibold mb-2">팀원별 역할</h4>
+            <div className="grid md:grid-cols-2 gap-3 max-h-96 overflow-auto pr-2">
+              {result.members
+                .filter((member) => member.role)
+                .map((member) => (
+                  <RoleCard key={member.memberId} displayName={member.displayName} role={member.role!} />
+                ))}
+            </div>
+          </div>
+        </section>
+      )}
       <section>
         <h4 className="font-semibold mb-2">형충합 포인트</h4>
         {branchRelations.length ? (
