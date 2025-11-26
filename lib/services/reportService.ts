@@ -77,6 +77,16 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
       birthTime?: string;
       dominant: string;
       profile: ReturnType<typeof profileToRecord>;
+      chart: {
+        yearStem: string;
+        yearBranch: string;
+        monthStem: string;
+        monthBranch: string;
+        dayStem: string;
+        dayBranch: string;
+        hourStem?: string;
+        hourBranch?: string;
+      };
       insights: ReturnType<typeof profileInsights>;
       tenGodHighlights: string[];
       dayBranch: EarthlyBranch;
@@ -131,6 +141,16 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
         birthTime: member.birthTime,
         dominant,
         profile: profileToRecord(profile),
+        chart: {
+          yearStem: chart.yearStem,
+          yearBranch: chart.yearBranch,
+          monthStem: chart.monthStem,
+          monthBranch: chart.monthBranch,
+          dayStem: chart.dayStem,
+          dayBranch: chart.dayBranch,
+          hourStem: chart.hourStem,
+          hourBranch: chart.hourBranch,
+        },
         insights,
         tenGodHighlights,
         dayBranch: chart.dayBranch,
@@ -251,6 +271,16 @@ export async function getTeamReport(teamId: string, shareToken?: string) {
       birthTime: member.birthTime || undefined,
       dominant: member.elements?.dominant ?? "unknown",
       profile,
+      chart: member.chart ? {
+        yearStem: member.chart.yearStem,
+        yearBranch: member.chart.yearBranch,
+        monthStem: member.chart.monthStem,
+        monthBranch: member.chart.monthBranch,
+        dayStem: member.chart.dayStem,
+        dayBranch: member.chart.dayBranch,
+        hourStem: member.chart.hourStem || undefined,
+        hourBranch: member.chart.hourBranch || undefined,
+      } : undefined,
       insights,
       tenGodHighlights,
     };

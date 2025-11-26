@@ -6,6 +6,18 @@ export enum Element {
   WATER = "water",
 }
 
+export const ELEMENT_LABELS: Record<Element, string> = {
+  [Element.FIRE]: "화",
+  [Element.WOOD]: "목",
+  [Element.EARTH]: "토",
+  [Element.METAL]: "금",
+  [Element.WATER]: "수",
+};
+
+export function getElementLabel(element: string): string {
+  return ELEMENT_LABELS[element as Element] || element.toUpperCase();
+}
+
 export enum YinYang {
   YANG = "yang",
   YIN = "yin",
@@ -345,6 +357,31 @@ export const calculateElementProfile = (chart: GanJiChart): ElementProfile => {
     metal: profile.metal / total,
     water: profile.water / total,
   };
+};
+
+/**
+ * Calculate raw element counts without normalization.
+ * Each stem/branch contributes to the total count (typically 8 pillars total).
+ */
+export const calculateRawElementCounts = (chart: GanJiChart): ElementProfile => {
+  const profile = emptyProfile();
+
+  const stems = [chart.yearStem, chart.monthStem, chart.dayStem, chart.hourStem].filter(
+    Boolean,
+  ) as HeavenlyStem[];
+  const branches = [
+    chart.yearBranch,
+    chart.monthBranch,
+    chart.dayBranch,
+    chart.hourBranch,
+  ].filter(Boolean) as EarthlyBranch[];
+
+  // Count stems as 1 each
+  stems.forEach((stem) => addWeight(profile, STEM_TO_ELEMENT[stem], 1));
+  // Count branches as 1 each
+  branches.forEach((branch) => addWeight(profile, BRANCH_TO_ELEMENT[branch], 1));
+
+  return profile;
 };
 
 export const dominantElement = (profile: ElementProfile): Element => {

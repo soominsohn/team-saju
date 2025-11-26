@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { getElementLabel } from "@/lib/elements";
 
 const ELEMENT_KEYS = ["wood", "fire", "earth", "metal", "water"] as const;
 const COLORS = ["#34d399", "#f97316", "#facc15", "#60a5fa", "#22d3ee"];
@@ -21,9 +22,13 @@ export function TeamElementPie({ profiles }: Props) {
       });
     });
 
+    // Calculate the sum of all totals for normalization
+    const sum = ELEMENT_KEYS.reduce((acc, key) => acc + totals[key], 0);
+
+    // Normalize to ensure percentages sum to 100%
     return ELEMENT_KEYS.map((key) => ({
-      name: key.toUpperCase(),
-      value: Number((totals[key] / profiles.length).toFixed(3)),
+      name: getElementLabel(key),
+      value: sum > 0 ? totals[key] / sum : 0,
     }));
   }, [profiles]);
 

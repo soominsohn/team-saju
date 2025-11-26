@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { CompatibilityGraph } from "@/components/charts/CompatibilityGraph";
 import { MemberRadar } from "@/components/charts/MemberRadar";
 import { TeamElementPie } from "@/components/charts/TeamElementPie";
+import { getElementLabel } from "@/lib/elements";
 import type { TeamReportResponse } from "@/types/report";
 
 const TEN_GOD_LABELS: Record<string, string> = {
@@ -93,10 +94,10 @@ export function ResultPanel({
             {result.members.map((member) => (
               <li key={member.memberId} className="border border-slate-200 rounded p-2">
                 <p className="font-semibold">
-                  {member.displayName} — 주체오행 {member.dominant?.toUpperCase?.() ?? "-"}
+                  {member.displayName} — 주체오행 {member.dominant ? getElementLabel(member.dominant) : "-"}
                 </p>
-                <p>결핍: {member.insights.missing.join(", ") || "없음"}</p>
-                <p>편중: {member.insights.skewed.join(", ") || "없음"}</p>
+                <p>결핍: {member.insights.missing.map(getElementLabel).join(", ") || "없음"}</p>
+                <p>편중: {member.insights.skewed.map(getElementLabel).join(", ") || "없음"}</p>
                 <p className="text-xs text-slate-500">
                   십신: {member.tenGodHighlights.length
                     ? member.tenGodHighlights.map((key) => TEN_GOD_LABELS[key] ?? key).join(", ")

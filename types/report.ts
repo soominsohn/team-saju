@@ -9,6 +9,16 @@ export type MemberReport = {
   birthTime?: string;
   dominant: string;
   profile: Record<string, number>;
+  chart?: {
+    yearStem: string;
+    yearBranch: string;
+    monthStem: string;
+    monthBranch: string;
+    dayStem: string;
+    dayBranch: string;
+    hourStem?: string;
+    hourBranch?: string;
+  };
   insights: {
     missing: Element[];
     skewed: Element[];
