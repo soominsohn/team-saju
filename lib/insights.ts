@@ -1,7 +1,6 @@
-import type { ElementProfile, Element } from "@/lib/elements";
-import { dominantElement, elementKeyMap } from "@/lib/elements";
-import type { BranchRelationInsight } from "@/lib/relations";
-import type { RoleProfile, TeamRole } from "@/lib/roles";
+import {dominantElement, Element, ElementProfile} from "@/lib/elements";
+import type {BranchRelationInsight} from "@/lib/relations";
+import {RoleProfile, TeamRole} from "@/lib/roles";
 
 export type InsightCategory = "balance" | "energy" | "risk" | "opportunity";
 export type InsightPriority = "high" | "medium" | "low";
@@ -95,11 +94,11 @@ function analyzeTeamElementBalance(members: MemberData[]): TeamInsight[] {
 
   // 결핍된 오행 감지 (평균 < 0.15)
   const missingElements: Element[] = [];
-  if (avgProfile.wood < 0.15) missingElements.push("wood");
-  if (avgProfile.fire < 0.15) missingElements.push("fire");
-  if (avgProfile.earth < 0.15) missingElements.push("earth");
-  if (avgProfile.metal < 0.15) missingElements.push("metal");
-  if (avgProfile.water < 0.15) missingElements.push("water");
+  if (avgProfile.wood < 0.15) missingElements.push(Element.WOOD);
+  if (avgProfile.fire < 0.15) missingElements.push(Element.FIRE);
+  if (avgProfile.earth < 0.15) missingElements.push(Element.EARTH);
+  if (avgProfile.metal < 0.15) missingElements.push(Element.METAL);
+  if (avgProfile.water < 0.15) missingElements.push(Element.WATER);
 
   if (missingElements.length > 0) {
     const elementLabels: Record<Element, string> = {
@@ -131,11 +130,11 @@ function analyzeTeamElementBalance(members: MemberData[]): TeamInsight[] {
 
   // 극단적 편중 감지 (평균 > 0.35)
   const dominantElements: Element[] = [];
-  if (avgProfile.wood > 0.35) dominantElements.push("wood");
-  if (avgProfile.fire > 0.35) dominantElements.push("fire");
-  if (avgProfile.earth > 0.35) dominantElements.push("earth");
-  if (avgProfile.metal > 0.35) dominantElements.push("metal");
-  if (avgProfile.water > 0.35) dominantElements.push("water");
+  if (avgProfile.wood > 0.35) dominantElements.push(Element.WOOD);
+  if (avgProfile.fire > 0.35) dominantElements.push(Element.FIRE);
+  if (avgProfile.earth > 0.35) dominantElements.push(Element.EARTH);
+  if (avgProfile.metal > 0.35) dominantElements.push(Element.METAL);
+  if (avgProfile.water > 0.35) dominantElements.push(Element.WATER);
 
   if (dominantElements.length > 0) {
     const elementLabels: Record<Element, string> = {
@@ -339,7 +338,7 @@ function analyzeRoleDistribution(members: MemberData[]): TeamInsight[] {
   };
 
   // 역할이 하나도 없는 경우
-  const allRoles: TeamRole[] = ["leader", "strategist", "coordinator", "analyst", "communicator"];
+  const allRoles: TeamRole[] = [TeamRole.LEADER, TeamRole.STRATEGIST, TeamRole.COORDINATOR, TeamRole.ANALYST, TeamRole.COMMUNICATOR];
   const missingRoles = allRoles.filter((role) => !roleCounts[role]);
 
   if (missingRoles.length > 0) {
