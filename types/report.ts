@@ -2,6 +2,7 @@ import type { Element, TenGod } from "@/lib/elements";
 import type { BranchRelationInsight } from "@/lib/relations";
 import type { TeamIndices } from "@/lib/team";
 import type { RoleProfile, TeamRoleDistribution } from "@/lib/roles";
+import type { TeamInsight } from "@/lib/insights";
 
 export type MemberReport = {
   memberId: string;
@@ -34,6 +35,13 @@ export type PairReport = {
   score: number;
   strengths: string[];
   risks: string[];
+  breakdown?: {
+    elementHarmony: number;
+    roleCompatibility: number;
+    ganjiHarmony: number;
+    elementBalance: number;
+  };
+  recommendations?: string[];
 };
 
 export type TeamReportResponse = {
@@ -48,4 +56,5 @@ export type TeamReportResponse = {
     branchRelations: BranchRelationInsight[];
   };
   roleDistribution?: TeamRoleDistribution;
+  insights?: TeamInsight[];
 };

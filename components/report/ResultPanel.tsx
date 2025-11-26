@@ -7,6 +7,8 @@ import { MemberRadar } from "@/components/charts/MemberRadar";
 import { TeamElementPie } from "@/components/charts/TeamElementPie";
 import { RoleCard } from "@/components/report/RoleCard";
 import { TeamRoleDistributionView } from "@/components/report/TeamRoleDistribution";
+import { CompatibilityDetails } from "@/components/report/CompatibilityDetails";
+import { InsightCards } from "@/components/report/InsightCards";
 import { getElementLabel } from "@/lib/elements";
 import type { TeamReportResponse } from "@/types/report";
 
@@ -155,6 +157,20 @@ export function ResultPanel({
           <p className="text-sm text-slate-500">형충합 패턴이 두드러지지 않습니다.</p>
         )}
       </section>
+      {/* 궁합 세부 정보 */}
+      {result.pairs.length > 0 && (
+        <section>
+          <h4 className="font-semibold mb-3">팀원 간 궁합 상세 분석</h4>
+          <CompatibilityDetails pairs={result.pairs} members={graphMembers} />
+        </section>
+      )}
+      {/* 팀 인사이트 */}
+      {result.insights && result.insights.length > 0 && (
+        <section>
+          <h4 className="font-semibold mb-3">팀 인사이트</h4>
+          <InsightCards insights={result.insights} />
+        </section>
+      )}
       <section className="text-xs text-slate-500">
         그래프 두께/색상은 궁합 점수를 나타냅니다. 세부 상생/상극 네트워크는 추후 고도화됩니다.
       </section>

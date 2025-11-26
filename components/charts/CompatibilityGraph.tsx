@@ -31,11 +31,24 @@ export function CompatibilityGraph({ members, pairs }: { members: GraphMember[];
   const { nodes, links } = useMemo(() => {
     if (!members.length) return { nodes: [], links: [] };
     const nodeMap = members.map((member) => ({ ...member, x: 0, y: 0 }));
-    const linkData = pairs.map((pair) => ({
+
+    // Create a node ID map for quick lookup
+    const nodeIdMap = new Map(nodeMap.map((node) => [node.id, node]));
+
+    // Filter out pairs with invalid member IDs
+    const validPairs = pairs.filter(
+      (pair) => nodeIdMap.has(pair.memberA) && nodeIdMap.has(pair.memberB)
+    );
+
+    const linkData = validPairs.map((pair) => ({
       source: pair.memberA,
       target: pair.memberB,
       score: pair.score,
     }));
+
+    if (linkData.length === 0) {
+      return { nodes: nodeMap, links: [] };
+    }
 
     const sim = forceSimulation(nodeMap)
       .force(
@@ -62,8 +75,15 @@ export function CompatibilityGraph({ members, pairs }: { members: GraphMember[];
   return (
     <svg width="100%" height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="border border-slate-200 rounded">
       {links.map((link, index) => {
-        const source = nodes.find((node) => node.id === link.source) ?? nodes[0];
-        const target = nodes.find((node) => node.id === link.target) ?? nodes[0];
+        // link.source and link.target might be objects after forceLink transformation
+        const sourceId = typeof link.source === 'string' ? link.source : (link.source as any)?.id;
+        const targetId = typeof link.target === 'string' ? link.target : (link.target as any)?.id;
+
+        const source = nodes.find((node) => node.id === sourceId);
+        const target = nodes.find((node) => node.id === targetId);
+
+        if (!source || !target) return null;
+
         return (
           <line
             key={index}

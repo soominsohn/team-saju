@@ -18,6 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: { teamId: 
       pairs: report.pairScores,
       dynamics: report.dynamics,
       roleDistribution: report.roleDistribution,
+      insights: report.insights,
     });
   } catch (error) {
     if (error instanceof Error) {

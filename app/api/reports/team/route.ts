@@ -36,15 +36,10 @@ export async function POST(request: Request) {
       shareToken: result.team.shareToken,
       teamScore: result.teamScore,
       members: result.memberSummaries,
-      pairs: result.pairScores.map((pair) => ({
-        memberA: pair.memberAId,
-        memberB: pair.memberBId,
-        score: pair.score,
-        strengths: pair.strengths,
-        risks: pair.risks,
-      })),
+      pairs: result.pairScores,
       dynamics: result.dynamics,
       roleDistribution: result.roleDistribution,
+      insights: result.insights,
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
