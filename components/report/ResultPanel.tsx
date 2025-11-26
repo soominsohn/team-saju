@@ -142,7 +142,8 @@ export function ResultPanel({
           </div>
         </section>
       )}
-      <section>
+      {/* 형충합 포인트 - 숨김 처리 */}
+      {/* <section>
         <h4 className="font-semibold mb-2">형충합 포인트</h4>
         {branchRelations.length ? (
           <ul className="space-y-2 text-sm text-slate-700">
@@ -156,7 +157,7 @@ export function ResultPanel({
         ) : (
           <p className="text-sm text-slate-500">형충합 패턴이 두드러지지 않습니다.</p>
         )}
-      </section>
+      </section> */}
       {/* 궁합 세부 정보 */}
       {result.pairs.length > 0 && (
         <section>

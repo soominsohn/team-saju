@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { PairReport } from "@/types/report";
 
 type Props = {
@@ -8,6 +9,8 @@ type Props = {
 };
 
 export function CompatibilityDetails({ pairs, members }: Props) {
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+
   const getMemberName = (memberId: string) => {
     return members.find((m) => m.id === memberId)?.name ?? memberId;
   };
@@ -24,107 +27,156 @@ export function CompatibilityDetails({ pairs, members }: Props) {
     return "주의 필요";
   };
 
+  // 필터링된 페어 목록
+  const filteredPairs = selectedMemberId
+    ? pairs.filter(
+        (pair) => pair.memberA === selectedMemberId || pair.memberB === selectedMemberId
+      )
+    : pairs;
+
   return (
     <div className="space-y-4">
-      {pairs.map((pair, index) => {
-        const memberAName = getMemberName(pair.memberA);
-        const memberBName = getMemberName(pair.memberB);
-        const scoreColor = getScoreColor(pair.score);
+      {/* 멤버 필터 칩 */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setSelectedMemberId(null)}
+          className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+            selectedMemberId === null
+              ? "bg-indigo-600 text-white border-indigo-600"
+              : "bg-white text-slate-700 border-slate-300 hover:border-indigo-400"
+          }`}
+        >
+          전체
+        </button>
+        {members.map((member) => (
+          <button
+            key={member.id}
+            onClick={() => setSelectedMemberId(member.id)}
+            className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+              selectedMemberId === member.id
+                ? "bg-indigo-600 text-white border-indigo-600"
+                : "bg-white text-slate-700 border-slate-300 hover:border-indigo-400"
+            }`}
+          >
+            {member.name}
+          </button>
+        ))}
+      </div>
 
-        return (
-          <div key={`${pair.memberA}-${pair.memberB}-${index}`} className="border border-slate-200 rounded-lg p-4 space-y-3">
-            {/* 헤더 */}
-            <div className="flex items-center justify-between">
-              <h5 className="font-semibold text-lg">
-                {memberAName} ↔ {memberBName}
-              </h5>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs px-2 py-1 rounded-full border ${scoreColor}`}>
-                  {getScoreLabel(pair.score)}
-                </span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-indigo-600">{pair.score}</span>
-                  <span className="text-xs text-slate-400">/100</span>
-                </div>
-              </div>
-            </div>
+      {/* 궁합 카드 목록 */}
+      {filteredPairs.length === 0 ? (
+        <p className="text-sm text-slate-500 text-center py-8">
+          선택한 멤버의 궁합 정보가 없습니다.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {filteredPairs.map((pair, index) => {
+            const memberAName = getMemberName(pair.memberA);
+            const memberBName = getMemberName(pair.memberB);
+            const scoreColor = getScoreColor(pair.score);
 
-            {/* Breakdown */}
-            {pair.breakdown && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                <BreakdownItem
-                  label="오행 조화"
-                  value={pair.breakdown.elementHarmony}
-                  max={20}
-                />
-                <BreakdownItem
-                  label="간지 조화"
-                  value={pair.breakdown.ganjiHarmony}
-                  max={25}
-                />
-                <BreakdownItem
-                  label="역할 시너지"
-                  value={pair.breakdown.roleCompatibility}
-                  max={15}
-                />
-                <BreakdownItem
-                  label="기운 균형"
-                  value={pair.breakdown.elementBalance}
-                  max={10}
-                />
-              </div>
-            )}
+            // 선택된 멤버가 앞에 오도록 순서 조정
+            const isASelected = selectedMemberId === pair.memberA;
+            const isBSelected = selectedMemberId === pair.memberB;
+            const firstName = isBSelected ? memberBName : memberAName;
+            const secondName = isBSelected ? memberAName : memberBName;
 
-            {/* Strengths */}
-            {pair.strengths.length > 0 && (
-              <div>
-                <div className="text-xs font-semibold text-green-700 mb-1">💚 강점</div>
-                <div className="flex flex-wrap gap-1">
-                  {pair.strengths.map((strength, i) => (
-                    <span
-                      key={i}
-                      className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200"
-                    >
-                      {strength}
+            return (
+              <div key={`${pair.memberA}-${pair.memberB}-${index}`} className="border border-slate-200 rounded-lg p-4 space-y-3">
+                {/* 헤더 */}
+                <div className="flex items-center justify-between">
+                  <h5 className="font-semibold text-lg">
+                    {firstName} ↔ {secondName}
+                  </h5>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-1 rounded-full border ${scoreColor}`}>
+                      {getScoreLabel(pair.score)}
                     </span>
-                  ))}
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-bold text-indigo-600">{pair.score}</span>
+                      <span className="text-xs text-slate-400">/100</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
 
-            {/* Risks */}
-            {pair.risks.length > 0 && (
-              <div>
-                <div className="text-xs font-semibold text-orange-700 mb-1">⚠️ 주의사항</div>
-                <div className="flex flex-wrap gap-1">
-                  {pair.risks.map((risk, i) => (
-                    <span
-                      key={i}
-                      className="text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded border border-orange-200"
-                    >
-                      {risk}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+                {/* Breakdown */}
+                {pair.breakdown && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                    <BreakdownItem
+                      label="오행 조화"
+                      value={pair.breakdown.elementHarmony}
+                      max={20}
+                    />
+                    <BreakdownItem
+                      label="간지 조화"
+                      value={pair.breakdown.ganjiHarmony}
+                      max={25}
+                    />
+                    <BreakdownItem
+                      label="역할 시너지"
+                      value={pair.breakdown.roleCompatibility}
+                      max={15}
+                    />
+                    <BreakdownItem
+                      label="기운 균형"
+                      value={pair.breakdown.elementBalance}
+                      max={10}
+                    />
+                  </div>
+                )}
 
-            {/* Recommendations */}
-            {pair.recommendations && pair.recommendations.length > 0 && (
-              <div className="pt-2 border-t border-slate-100">
-                <div className="text-xs font-semibold text-indigo-700 mb-1">💡 추천사항</div>
-                <ul className="space-y-1">
-                  {pair.recommendations.map((rec, i) => (
-                    <li key={i} className="text-xs text-slate-600 pl-3">
-                      • {rec}
-                    </li>
-                  ))}
-                </ul>
+                {/* Strengths */}
+                {pair.strengths.length > 0 && (
+                  <div>
+                    <div className="text-xs font-semibold text-green-700 mb-1">💚 강점</div>
+                    <div className="flex flex-wrap gap-1">
+                      {pair.strengths.map((strength, i) => (
+                        <span
+                          key={i}
+                          className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200"
+                        >
+                          {strength}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Risks */}
+                {pair.risks.length > 0 && (
+                  <div>
+                    <div className="text-xs font-semibold text-orange-700 mb-1">⚠️ 주의사항</div>
+                    <div className="flex flex-wrap gap-1">
+                      {pair.risks.map((risk, i) => (
+                        <span
+                          key={i}
+                          className="text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded border border-orange-200"
+                        >
+                          {risk}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                {pair.recommendations && pair.recommendations.length > 0 && (
+                  <div className="pt-2 border-t border-slate-100">
+                    <div className="text-xs font-semibold text-indigo-700 mb-1">💡 추천사항</div>
+                    <ul className="space-y-1">
+                      {pair.recommendations.map((rec, i) => (
+                        <li key={i} className="text-xs text-slate-600 pl-3">
+                          • {rec}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
