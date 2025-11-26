@@ -74,12 +74,44 @@ export function ResultPanel({
           </div>
         </div>
       </header>
-      <section className="grid grid-cols-2 gap-3 text-sm">
-        <Metric label="최종 점수" value={result.teamScore.finalScore.toFixed(1)} />
-        <Metric label="균형" value={result.teamScore.balanceIdx.toFixed(1)} />
-        <Metric label="상생" value={result.teamScore.nourishIdx.toFixed(1)} />
-        <Metric label="상극" value={result.teamScore.conflictIdx.toFixed(1)} />
-        <Metric label="역할 커버리지" value={result.teamScore.roleCoverage.toFixed(1)} />
+      <section className="space-y-3">
+        <ScoreMetric
+          label="최종 점수"
+          value={result.teamScore.finalScore}
+          description="팀 전체의 종합 조화도"
+          icon="🎯"
+          max={100}
+        />
+        <div className="grid md:grid-cols-2 gap-3">
+          <ScoreMetric
+            label="오행 균형"
+            value={result.teamScore.balanceIdx}
+            description="팀원들의 기운 분포 균형도"
+            icon="⚖️"
+            max={100}
+          />
+          <ScoreMetric
+            label="상생 흐름"
+            value={result.teamScore.nourishIdx}
+            description="서로를 북돋우는 에너지"
+            icon="🌱"
+            max={100}
+          />
+          <ScoreMetric
+            label="조화도"
+            value={result.teamScore.conflictIdx}
+            description="상극 요소가 적을수록 높음"
+            icon="🛡️"
+            max={100}
+          />
+          <ScoreMetric
+            label="역할 다양성"
+            value={result.teamScore.roleCoverage}
+            description="다양한 역할의 보유 정도"
+            icon="🎭"
+            max={100}
+          />
+        </div>
       </section>
       <section className="grid md:grid-cols-2 gap-4">
         <div>
@@ -179,11 +211,51 @@ export function ResultPanel({
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function ScoreMetric({
+  label,
+  value,
+  description,
+  icon,
+  max,
+}: {
+  label: string;
+  value: number;
+  description: string;
+  icon: string;
+  max: number;
+}) {
+  const percentage = (value / max) * 100;
+
+  const getColor = (score: number) => {
+    if (score >= 70) return { bg: "bg-green-500", text: "text-green-700", light: "bg-green-50" };
+    if (score >= 50) return { bg: "bg-blue-500", text: "text-blue-700", light: "bg-blue-50" };
+    if (score >= 30) return { bg: "bg-yellow-500", text: "text-yellow-700", light: "bg-yellow-50" };
+    return { bg: "bg-orange-500", text: "text-orange-700", light: "bg-orange-50" };
+  };
+
+  const colors = getColor(value);
+
   return (
-    <div className="border border-slate-200 rounded p-2">
-      <p className="text-slate-500 text-xs">{label}</p>
-      <p className="text-lg font-semibold">{value}</p>
+    <div className={`border border-slate-200 rounded-lg p-4 ${colors.light}`}>
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{icon}</span>
+          <div>
+            <h4 className="font-semibold text-slate-800">{label}</h4>
+            <p className="text-xs text-slate-500">{description}</p>
+          </div>
+        </div>
+        <div className="flex items-baseline gap-1">
+          <span className={`text-2xl font-bold ${colors.text}`}>{value.toFixed(1)}</span>
+          <span className="text-xs text-slate-400">/{max}</span>
+        </div>
+      </div>
+      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+        <div
+          className={`h-full ${colors.bg} transition-all duration-500`}
+          style={{ width: `${Math.min(percentage, 100)}%` }}
+        />
+      </div>
     </div>
   );
 }
