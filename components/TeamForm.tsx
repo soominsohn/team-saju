@@ -234,39 +234,63 @@ export function TeamForm({
               <label className="block text-xs text-slate-600 mb-1">생년월일</label>
               <div className="grid grid-cols-3 gap-2">
                 <input
-                  type="number"
-                  className="rounded border border-slate-300 px-3 py-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="rounded border border-slate-300 px-3 py-2"
                   placeholder="년 (YYYY)"
                   value={member.birthYear}
-                  onChange={(e) => updateMember(index, "birthYear", e.target.value)}
-                  min="1900"
-                  max="9999"
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    updateMember(index, "birthYear", value);
+                  }}
+                  onKeyPress={(e) => {
+                    if (!/[0-9]/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
                   required
                 />
                 <input
                   ref={(el) => {
                     monthInputRefs.current[index] = el;
                   }}
-                  type="number"
-                  className="rounded border border-slate-300 px-3 py-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="rounded border border-slate-300 px-3 py-2"
                   placeholder="월 (MM)"
                   value={member.birthMonth}
-                  onChange={(e) => updateMember(index, "birthMonth", e.target.value)}
-                  min="1"
-                  max="12"
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    updateMember(index, "birthMonth", value);
+                  }}
+                  onKeyPress={(e) => {
+                    if (!/[0-9]/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
                   required
                 />
                 <input
                   ref={(el) => {
                     dayInputRefs.current[index] = el;
                   }}
-                  type="number"
-                  className="rounded border border-slate-300 px-3 py-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="rounded border border-slate-300 px-3 py-2"
                   placeholder="일 (DD)"
                   value={member.birthDay}
-                  onChange={(e) => updateMember(index, "birthDay", e.target.value)}
-                  min="1"
-                  max="31"
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    updateMember(index, "birthDay", value);
+                  }}
+                  onKeyPress={(e) => {
+                    if (!/[0-9]/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
                   required
                 />
               </div>
@@ -321,38 +345,48 @@ export function TeamForm({
                   <option value="PM">오후</option>
                 </select>
                 <input
-                  type="number"
-                  className="rounded border border-slate-300 px-3 py-2 disabled:bg-slate-100 disabled:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="rounded border border-slate-300 px-3 py-2 disabled:bg-slate-100 disabled:text-slate-400"
                   placeholder="시 (1-12)"
                   value={member.birthHour || ""}
                   onChange={(e) => {
-                    const val = e.target.value;
+                    const val = e.target.value.replace(/[^0-9]/g, "");
                     const num = parseInt(val);
                     if (val === "" || (num >= 1 && num <= 12 && val.length <= 2)) {
                       updateMember(index, "birthHour", val);
                     }
                   }}
-                  min="1"
-                  max="12"
+                  onKeyPress={(e) => {
+                    if (!/[0-9]/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
                   disabled={member.birthTimeUnknown}
                 />
                 <input
                   ref={(el) => {
                     minuteInputRefs.current[index] = el;
                   }}
-                  type="number"
-                  className="rounded border border-slate-300 px-3 py-2 disabled:bg-slate-100 disabled:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="rounded border border-slate-300 px-3 py-2 disabled:bg-slate-100 disabled:text-slate-400"
                   placeholder="분 (0-59)"
                   value={member.birthMinute || ""}
                   onChange={(e) => {
-                    const val = e.target.value;
+                    const val = e.target.value.replace(/[^0-9]/g, "");
                     const num = parseInt(val);
                     if (val === "" || (num >= 0 && num <= 59 && val.length <= 2)) {
                       updateMember(index, "birthMinute", val);
                     }
                   }}
-                  min="0"
-                  max="59"
+                  onKeyPress={(e) => {
+                    if (!/[0-9]/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
                   disabled={member.birthTimeUnknown}
                 />
               </div>
