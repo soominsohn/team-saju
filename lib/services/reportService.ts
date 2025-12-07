@@ -25,6 +25,7 @@ const memberInputSchema = z.object({
   displayName: z.string().min(1).max(50),
   birthDate: z.string(),
   birthTime: z.string().optional(),
+  isLunar: z.boolean().optional(),
 });
 
 const createPayloadSchema = z.object({
@@ -113,6 +114,7 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
           displayName: member.displayName,
           birthDate: new Date(`${member.birthDate}T00:00:00.000Z`),
           birthTime: member.birthTime ?? null,
+          isLunar: member.isLunar ?? false,
           timezone: "Asia/Seoul",
         },
       });
@@ -295,6 +297,266 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
   });
 }
 
+export async function updateTeamWithReport(teamId: string, payload: CreateTeamPayload, shareToken?: string) {
+  const parsed = createPayloadSchema.parse(payload);
+
+  return prisma.$transaction(async (tx) => {
+    // Verify team exists and token is valid
+    const team = await tx.team.findUnique({
+      where: { id: teamId },
+    });
+
+    if (!team) {
+      throw new Error("TEAM_NOT_FOUND");
+    }
+
+    if (shareToken && team.shareToken !== shareToken) {
+      throw new Error("FORBIDDEN");
+    }
+
+    // Update team info
+    await tx.team.update({
+      where: { id: teamId },
+      data: {
+        name: parsed.teamName,
+        purpose: parsed.purpose ?? null,
+      },
+    });
+
+    // Delete existing members and related data (cascade)
+    await tx.member.deleteMany({
+      where: { teamId },
+    });
+
+    // Delete existing team scores
+    await tx.teamScore.deleteMany({
+      where: { teamId },
+    });
+
+    // Delete existing pair scores
+    await tx.pairScore.deleteMany({
+      where: { teamId },
+    });
+
+    const memberDetails: {
+      memberId: string;
+      displayName: string;
+      birthDate: string;
+      birthTime?: string;
+      dominant: string;
+      profile: ReturnType<typeof profileToRecord>;
+      chart: {
+        yearStem: string;
+        yearBranch: string;
+        monthStem: string;
+        monthBranch: string;
+        dayStem: string;
+        dayBranch: string;
+        hourStem?: string;
+        hourBranch?: string;
+      };
+      insights: ReturnType<typeof profileInsights>;
+      tenGodHighlights: string[];
+      role: RoleProfile;
+      dayBranch: EarthlyBranch;
+    }[] = [];
+
+    for (const member of parsed.members) {
+      const chart = deriveGanJiFromBirth({
+        birthDate: member.birthDate,
+        birthTime: member.birthTime,
+      });
+      const profile = calculateElementProfile(chart);
+      const insights = profileInsights(profile);
+      const dominant = dominantElement(profile);
+      const tenGodProfile = summarizeTenGods(chart);
+      const tenGodHighlights = topTenGods(tenGodProfile);
+      const role = deriveRole(chart, profile, tenGodProfile);
+
+      const memberRecord = await tx.member.create({
+        data: {
+          teamId: team.id,
+          displayName: member.displayName,
+          birthDate: new Date(`${member.birthDate}T00:00:00.000Z`),
+          birthTime: member.birthTime ?? null,
+          isLunar: member.isLunar ?? false,
+          timezone: "Asia/Seoul",
+        },
+      });
+
+      await tx.chart.create({
+        data: {
+          memberId: memberRecord.id,
+          yearStem: chart.yearStem,
+          yearBranch: chart.yearBranch,
+          monthStem: chart.monthStem,
+          monthBranch: chart.monthBranch,
+          dayStem: chart.dayStem,
+          dayBranch: chart.dayBranch,
+          hourStem: chart.hourStem ?? null,
+          hourBranch: chart.hourBranch ?? null,
+        },
+      });
+
+      await tx.elementProfile.create({
+        data: {
+          memberId: memberRecord.id,
+          ...profileToRecord(profile),
+          dominant,
+        },
+      });
+
+      memberDetails.push({
+        memberId: memberRecord.id,
+        displayName: member.displayName,
+        birthDate: member.birthDate,
+        birthTime: member.birthTime,
+        dominant,
+        profile: profileToRecord(profile),
+        chart: {
+          yearStem: chart.yearStem,
+          yearBranch: chart.yearBranch,
+          monthStem: chart.monthStem,
+          monthBranch: chart.monthBranch,
+          dayStem: chart.dayStem,
+          dayBranch: chart.dayBranch,
+          hourStem: chart.hourStem,
+          hourBranch: chart.hourBranch,
+        },
+        insights,
+        tenGodHighlights,
+        role,
+        dayBranch: chart.dayBranch,
+      });
+    }
+
+    const profiles = memberDetails.map((member) => member.profile);
+    const teamScore = scoreTeam(profiles);
+
+    await tx.teamScore.create({
+      data: {
+        teamId: team.id,
+        balanceIdx: teamScore.balanceIdx,
+        nourishIdx: teamScore.nourishIdx,
+        conflictIdx: teamScore.conflictIdx,
+        roleCoverage: teamScore.roleCoverage,
+        finalScore: teamScore.finalScore,
+      },
+    });
+
+    const pairScores = [];
+    const enhancedPairScores = [];
+
+    for (let i = 0; i < memberDetails.length; i += 1) {
+      for (let j = i + 1; j < memberDetails.length; j += 1) {
+        const memberA = memberDetails[i];
+        const memberB = memberDetails[j];
+
+        const chartA = {
+          yearStem: memberA.chart.yearStem as HeavenlyStem,
+          yearBranch: memberA.chart.yearBranch as EarthlyBranch,
+          monthStem: memberA.chart.monthStem as HeavenlyStem,
+          monthBranch: memberA.chart.monthBranch as EarthlyBranch,
+          dayStem: memberA.chart.dayStem as HeavenlyStem,
+          dayBranch: memberA.chart.dayBranch as EarthlyBranch,
+          hourStem: memberA.chart.hourStem as HeavenlyStem | undefined,
+          hourBranch: memberA.chart.hourBranch as EarthlyBranch | undefined,
+        };
+
+        const chartB = {
+          yearStem: memberB.chart.yearStem as HeavenlyStem,
+          yearBranch: memberB.chart.yearBranch as EarthlyBranch,
+          monthStem: memberB.chart.monthStem as HeavenlyStem,
+          monthBranch: memberB.chart.monthBranch as EarthlyBranch,
+          dayStem: memberB.chart.dayStem as HeavenlyStem,
+          dayBranch: memberB.chart.dayBranch as EarthlyBranch,
+          hourStem: memberB.chart.hourStem as HeavenlyStem | undefined,
+          hourBranch: memberB.chart.hourBranch as EarthlyBranch | undefined,
+        };
+
+        const enhanced = computeEnhancedCompatibility(
+          chartA,
+          memberA.profile,
+          memberA.role,
+          chartB,
+          memberB.profile,
+          memberB.role,
+        );
+
+        const pair = {
+          memberAId: memberA.memberId,
+          memberBId: memberB.memberId,
+          score: enhanced.score,
+          strengths: enhanced.insights.strengths,
+          risks: enhanced.insights.risks,
+        };
+        pairScores.push(pair);
+
+        enhancedPairScores.push({
+          memberA: memberA.memberId,
+          memberB: memberB.memberId,
+          score: enhanced.score,
+          strengths: enhanced.insights.strengths,
+          risks: enhanced.insights.risks,
+          breakdown: enhanced.breakdown,
+          recommendations: enhanced.insights.recommendations,
+        });
+      }
+    }
+
+    if (pairScores.length) {
+      await tx.pairScore.createMany({
+        data: pairScores.map((pair) => ({
+          teamId: team.id,
+          memberA: pair.memberAId,
+          memberB: pair.memberBId,
+          score: pair.score,
+          strengths: pair.strengths,
+          risks: pair.risks,
+        })),
+      });
+    }
+
+    const branchRelations = analyzeBranchRelations(
+      memberDetails.map((member) => ({
+        memberId: member.memberId,
+        displayName: member.displayName,
+        branch: member.dayBranch,
+      })),
+    );
+
+    const roleProfiles = memberDetails.map((member) => member.role);
+    const roleDistribution = analyzeTeamRoles(roleProfiles);
+
+    const publicMembers = memberDetails.map(({ dayBranch, ...rest }) => rest);
+
+    const insightsData = memberDetails.map((member) => ({
+      memberId: member.memberId,
+      displayName: member.displayName,
+      profile: member.profile,
+      role: member.role,
+    }));
+
+    const insights = generateTeamInsights(
+      insightsData,
+      enhancedPairScores,
+      branchRelations,
+    );
+
+    return {
+      team,
+      memberSummaries: publicMembers,
+      teamScore,
+      pairScores: enhancedPairScores,
+      dynamics: {
+        branchRelations,
+      },
+      roleDistribution,
+      insights,
+    };
+  });
+}
+
 export async function getTeamReport(teamId: string, shareToken?: string) {
   const team = await prisma.team.findUnique({
     where: { id: teamId },
@@ -348,6 +610,7 @@ export async function getTeamReport(teamId: string, shareToken?: string) {
       displayName: member.displayName,
       birthDate: member.birthDate.toISOString().split('T')[0], // YYYY-MM-DD format
       birthTime: member.birthTime || undefined,
+      isLunar: member.isLunar,
       dominant: member.elements?.dominant ?? "unknown",
       profile,
       chart: member.chart ? {

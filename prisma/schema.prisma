@@ -27,9 +27,10 @@ model Member {
   gender      String?
   birthDate   DateTime
   birthTime   String?
+  isLunar     Boolean  @default(false)
   timezone    String   @default("Asia/Seoul")
   createdAt   DateTime @default(now())
-  team        Team     @relation(fields: [teamId], references: [id])
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   chart       Chart?
   elements    ElementProfile?
 }
@@ -46,7 +47,7 @@ model Chart {
   hourStem    String?
   hourBranch  String?
   createdAt   DateTime      @default(now())
-  member      Member        @relation(fields: [memberId], references: [id])
+  member      Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
 }
 
 model ElementProfile {
@@ -59,7 +60,7 @@ model ElementProfile {
   water     Float
   dominant  String
   createdAt DateTime @default(now())
-  member    Member   @relation(fields: [memberId], references: [id])
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
 }
 
 model PairScore {
@@ -71,7 +72,7 @@ model PairScore {
   strengths String[]
   risks     String[]
   createdAt DateTime @default(now())
-  team      Team     @relation(fields: [teamId], references: [id])
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
 model TeamScore {
@@ -83,7 +84,7 @@ model TeamScore {
   roleCoverage  Float
   finalScore    Float
   createdAt     DateTime @default(now())
-  team          Team     @relation(fields: [teamId], references: [id])
+  team          Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {

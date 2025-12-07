@@ -10,6 +10,7 @@ const memberSchema = z.object({
     .string()
     .regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "HH:mm 형식이어야 합니다")
     .optional(),
+  isLunar: z.boolean().optional(),
 });
 
 const requestSchema = z.object({

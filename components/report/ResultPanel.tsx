@@ -113,19 +113,20 @@ export function ResultPanel({
           />
         </div>
       </section>
-      <section className="grid md:grid-cols-2 gap-4">
-        <div>
-          <h4 className="font-semibold mb-2">팀 오행 분포</h4>
-          <TeamElementPie profiles={aggregatedProfiles} />
+      <section>
+        <h4 className="font-semibold mb-3">팀원 오행 분석</h4>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <h5 className="text-sm font-medium text-slate-600 mb-2">팀 오행 분포</h5>
+            <TeamElementPie profiles={aggregatedProfiles} />
+          </div>
+          <div>
+            <h5 className="text-sm font-medium text-slate-600 mb-2">멤버별 레이더</h5>
+            <MemberRadar members={result.members} />
+          </div>
         </div>
-        <div>
-          <h4 className="font-semibold mb-2">멤버 레이더</h4>
-          <MemberRadar members={result.members} />
-        </div>
-      </section>
-      <section className="grid md:grid-cols-2 gap-4">
-        <div>
-          <h4 className="font-semibold mb-2">팀원 오행 요약</h4>
+        <div className="mt-4">
+          <h5 className="text-sm font-medium text-slate-600 mb-2">팀원 오행 요약</h5>
           <ul className="space-y-2 text-sm text-slate-700 max-h-72 overflow-auto pr-2">
             {result.members.map((member) => (
               <li key={member.memberId} className="border border-slate-200 rounded p-2">
@@ -143,17 +144,17 @@ export function ResultPanel({
             ))}
           </ul>
         </div>
-        <div>
-          <h4 className="font-semibold mb-2">상생/상극 네트워크</h4>
-          <CompatibilityGraph
-            members={graphMembers}
-            pairs={result.pairs.map((pair) => ({
-              memberA: pair.memberA,
-              memberB: pair.memberB,
-              score: pair.score,
-            }))}
-          />
-        </div>
+      </section>
+      <section>
+        <h4 className="font-semibold mb-2">상생/상극 네트워크</h4>
+        <CompatibilityGraph
+          members={graphMembers}
+          pairs={result.pairs.map((pair) => ({
+            memberA: pair.memberA,
+            memberB: pair.memberB,
+            score: pair.score,
+          }))}
+        />
       </section>
       {/* 팀 역할 분포 */}
       {result.roleDistribution && (

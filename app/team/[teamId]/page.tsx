@@ -43,11 +43,42 @@ export default function TeamReportPage() {
         setInitialFormData({
           teamName: data.teamName,
           purpose: data.purpose || "",
-          members: data.members.map((member) => ({
-            displayName: member.displayName,
-            birthDate: member.birthDate,
-            birthTime: member.birthTime || "",
-          })),
+          members: data.members.map((member) => {
+            // YYYY-MM-DD 형식을 년/월/일로 분리
+            const [year, month, day] = member.birthDate.split("-");
+
+            // HH:mm 형식을 오전/오후와 시/분으로 변환
+            let birthAmPm: "AM" | "PM" = "AM";
+            let birthHour = "";
+            let birthMinute = "";
+
+            if (member.birthTime) {
+              const [hourStr, minuteStr] = member.birthTime.split(":");
+              const hour24 = parseInt(hourStr);
+              birthMinute = minuteStr;
+
+              if (hour24 >= 12) {
+                birthAmPm = "PM";
+                birthHour = hour24 === 12 ? "12" : (hour24 - 12).toString();
+              } else {
+                birthAmPm = "AM";
+                birthHour = hour24 === 0 ? "12" : hour24.toString();
+              }
+            }
+
+            return {
+              displayName: member.displayName,
+              birthYear: year || "",
+              birthMonth: month || "",
+              birthDay: day || "",
+              birthTime: member.birthTime || "",
+              birthTimeUnknown: !member.birthTime,
+              isLunar: (member as any).isLunar ?? false,
+              birthAmPm,
+              birthHour,
+              birthMinute,
+            };
+          }),
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다");
@@ -64,17 +95,27 @@ export default function TeamReportPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/reports/team", {
-        method: "POST",
+      const query = token ? `?token=${token}` : "";
+      const response = await fetch(`/api/teams/${teamId}${query}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           teamName: data.teamName,
           purpose: data.purpose,
-          members: data.members.map((member) => ({
-            displayName: member.displayName,
-            birthDate: member.birthDate,
-            birthTime: member.birthTime || undefined,
-          })),
+          members: data.members.map((member) => {
+            // 년/월/일을 YYYY-MM-DD 형식으로 변환
+            const year = member.birthYear.padStart(4, "0");
+            const month = member.birthMonth.padStart(2, "0");
+            const day = member.birthDay.padStart(2, "0");
+            const birthDate = `${year}-${month}-${day}`;
+
+            return {
+              displayName: member.displayName,
+              birthDate,
+              birthTime: member.birthTimeUnknown ? undefined : (member.birthTime || undefined),
+              isLunar: member.isLunar,
+            };
+          }),
         }),
       });
 
@@ -90,11 +131,42 @@ export default function TeamReportPage() {
       setInitialFormData({
         teamName: responseData.teamName,
         purpose: responseData.purpose || "",
-        members: responseData.members.map((member) => ({
-          displayName: member.displayName,
-          birthDate: member.birthDate,
-          birthTime: member.birthTime || "",
-        })),
+        members: responseData.members.map((member) => {
+          // YYYY-MM-DD 형식을 년/월/일로 분리
+          const [year, month, day] = member.birthDate.split("-");
+
+          // HH:mm 형식을 오전/오후와 시/분으로 변환
+          let birthAmPm: "AM" | "PM" = "AM";
+          let birthHour = "";
+          let birthMinute = "";
+
+          if (member.birthTime) {
+            const [hourStr, minuteStr] = member.birthTime.split(":");
+            const hour24 = parseInt(hourStr);
+            birthMinute = minuteStr;
+
+            if (hour24 >= 12) {
+              birthAmPm = "PM";
+              birthHour = hour24 === 12 ? "12" : (hour24 - 12).toString();
+            } else {
+              birthAmPm = "AM";
+              birthHour = hour24 === 0 ? "12" : hour24.toString();
+            }
+          }
+
+          return {
+            displayName: member.displayName,
+            birthYear: year || "",
+            birthMonth: month || "",
+            birthDay: day || "",
+            birthTime: member.birthTime || "",
+            birthTimeUnknown: !member.birthTime,
+            isLunar: (member as any).isLunar ?? false,
+            birthAmPm,
+            birthHour,
+            birthMinute,
+          };
+        }),
       });
 
       setEditMode(false);
