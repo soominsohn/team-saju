@@ -279,14 +279,14 @@ function ShareLink({ teamId, token }: { teamId: string; token: string }) {
   };
 
   return (
-    <div className="flex items-center gap-2 text-xs text-slate-500">
-      <span className="truncate max-w-[220px]">{shareUrl}</span>
+    <div className="flex items-center gap-2">
       <button
         type="button"
         onClick={handleCopy}
-        className="px-2 py-1 bg-indigo-600 text-white rounded"
+        className="px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold hover:bg-indigo-700 transition-colors flex items-center gap-2"
       >
-        {copied ? "복사됨" : "링크 복사"}
+        <span className="text-lg">🔗</span>
+        {copied ? "✓ 링크 복사됨!" : "공유하기"}
       </button>
     </div>
   );

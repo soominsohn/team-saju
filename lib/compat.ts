@@ -214,10 +214,22 @@ export function computeEnhancedCompatibility(
     const synergy = ROLE_SYNERGY[roleA.primary]?.[roleB.primary] ?? 0;
     roleCompatibility = synergy > 5 ? 15 : synergy < 3 ? -10 : 5;
 
+    // 역할을 한글로 변환
+    const roleLabels: Record<string, string> = {
+      leader: "리더형",
+      strategist: "기획자형",
+      coordinator: "조율자형",
+      analyst: "분석가형",
+      communicator: "소통가형",
+    };
+
+    const roleALabel = roleLabels[roleA.primary] || roleA.primary;
+    const roleBLabel = roleLabels[roleB.primary] || roleB.primary;
+
     if (synergy >= 7) {
-      roleInsights.push(`${roleA.primary}와 ${roleB.primary}는 최고의 협업 조합입니다`);
+      roleInsights.push(`${roleALabel}와 ${roleBLabel}는 최고의 협업 조합입니다`);
     } else if (synergy <= 3) {
-      roleInsights.push(`${roleA.primary}와 ${roleB.primary}는 서로 보완이 필요합니다`);
+      roleInsights.push(`${roleALabel}와 ${roleBLabel}는 서로 보완이 필요합니다`);
     }
   }
 
