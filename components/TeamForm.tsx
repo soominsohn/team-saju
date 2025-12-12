@@ -198,16 +198,7 @@ export function TeamForm({
         />
       </section>
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">팀원 정보</h2>
-          <button
-            type="button"
-            onClick={addMember}
-            className="text-sm text-indigo-600 hover:underline"
-          >
-            + 팀원 추가
-          </button>
-        </div>
+        <h2 className="text-lg font-semibold">팀원 정보</h2>
         {members.map((member, index) => (
           <div key={index} className="space-y-3 border border-slate-200 rounded-md p-3">
             <div className="flex gap-3">
@@ -393,6 +384,16 @@ export function TeamForm({
             </div>
           </div>
         ))}
+
+        {/* 팀원 추가 버튼 */}
+        <button
+          type="button"
+          onClick={addMember}
+          className="w-full py-3 border-2 border-dashed border-indigo-300 rounded-md text-indigo-600 font-medium hover:border-indigo-400 hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2"
+        >
+          <span className="text-xl">+</span>
+          <span>팀원 추가</span>
+        </button>
       </div>
       <div className="flex gap-3">
         <button
