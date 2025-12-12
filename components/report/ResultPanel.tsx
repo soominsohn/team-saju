@@ -9,6 +9,8 @@ import { RoleCard } from "@/components/report/RoleCard";
 import { TeamRoleDistributionView } from "@/components/report/TeamRoleDistribution";
 import { CompatibilityDetails } from "@/components/report/CompatibilityDetails";
 import { InsightCards } from "@/components/report/InsightCards";
+import { LockedSection } from "@/components/report/LockedSection";
+import { SupportButton } from "@/components/SupportButton";
 import { getElementLabel } from "@/lib/elements";
 import type { TeamReportResponse } from "@/types/report";
 
@@ -122,7 +124,12 @@ export function ResultPanel({
           </div>
           <div>
             <h5 className="text-sm font-medium text-slate-600 mb-2">멤버별 레이더</h5>
-            <MemberRadar members={result.members} />
+            <LockedSection
+              title="개인별 상세 분석"
+              previewText="각 팀원의 오행 밸런스를 레이더 차트로 확인하세요"
+            >
+              <MemberRadar members={result.members} />
+            </LockedSection>
           </div>
         </div>
         <div className="mt-4">
@@ -165,13 +172,31 @@ export function ResultPanel({
           </div>
           <div className="md:col-span-2">
             <h4 className="font-semibold mb-2">팀원별 역할</h4>
-            <div className="grid md:grid-cols-2 gap-3 max-h-96 overflow-auto pr-2">
-              {result.members
-                .filter((member) => member.role)
-                .map((member) => (
-                  <RoleCard key={member.memberId} displayName={member.displayName} role={member.role!} />
-                ))}
-            </div>
+            <LockedSection
+              title="팀원별 역할 상세"
+              previewText="각 팀원이 팀에서 어떤 역할을 맡는지 확인하세요"
+              preview={
+                result.members.filter((member) => member.role).length > 0 ? (
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {result.members
+                      .filter((member) => member.role)
+                      .slice(0, 1)
+                      .map((member) => (
+                        <RoleCard key={member.memberId} displayName={member.displayName} role={member.role!} />
+                      ))}
+                  </div>
+                ) : null
+              }
+            >
+              <div className="grid md:grid-cols-2 gap-3 max-h-96 overflow-auto pr-2">
+                {result.members
+                  .filter((member) => member.role)
+                  .slice(1)
+                  .map((member) => (
+                    <RoleCard key={member.memberId} displayName={member.displayName} role={member.role!} />
+                  ))}
+              </div>
+            </LockedSection>
           </div>
         </section>
       )}
@@ -195,16 +220,53 @@ export function ResultPanel({
       {result.pairs.length > 0 && (
         <section>
           <h4 className="font-semibold mb-3">팀원 간 궁합 상세 분석</h4>
-          <CompatibilityDetails pairs={result.pairs} members={graphMembers} />
+          <LockedSection
+            title="팀원 간 궁합 상세 분석"
+            previewText="누가 누구와 잘 맞는지, 어떤 점을 주의해야 하는지 구체적인 분석을 확인하세요"
+            preview={
+              result.pairs.length > 0 ? (
+                <CompatibilityDetails pairs={result.pairs.slice(0, 1)} members={graphMembers} />
+              ) : null
+            }
+          >
+            <CompatibilityDetails pairs={result.pairs.slice(1)} members={graphMembers} />
+          </LockedSection>
         </section>
       )}
       {/* 팀 인사이트 */}
       {result.insights && result.insights.length > 0 && (
         <section>
           <h4 className="font-semibold mb-3">팀 인사이트</h4>
-          <InsightCards insights={result.insights} />
+          <LockedSection
+            title="AI 기반 팀 인사이트"
+            previewText="우리 팀만의 강점과 개선점을 확인하세요"
+            preview={
+              result.insights.length > 0 ? (
+                <InsightCards insights={result.insights.slice(0, 1)} />
+              ) : null
+            }
+          >
+            <InsightCards insights={result.insights.slice(1)} />
+          </LockedSection>
         </section>
       )}
+      {/* 후원 CTA */}
+      <section className="bg-amber-50 border-2 border-amber-200 rounded-lg p-6 text-center space-y-3">
+        <div className="text-3xl">☕</div>
+        <p className="text-lg font-semibold text-amber-900">이 분석이 도움이 되셨나요?</p>
+        <p className="text-sm text-amber-700">
+          커피 한잔으로 서비스 개선을 응원해주세요!
+          <br />
+          <span className="text-xs">(선택사항이며, 후원하시면 전체 상세 분석이 잠금 해제됩니다)</span>
+        </p>
+        <div className="flex justify-center">
+          <SupportButton variant="default" />
+        </div>
+        <p className="text-xs text-slate-600 mt-2">
+          후원을 하면 모든 블러가 사라집니다
+        </p>
+      </section>
+
       <section className="text-xs text-slate-500">
         그래프 두께/색상은 궁합 점수를 나타냅니다. 세부 상생/상극 네트워크는 추후 고도화됩니다.
       </section>
