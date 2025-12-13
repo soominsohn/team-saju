@@ -252,10 +252,10 @@ export function ResultPanel({
       )}
       {/* 후원 CTA */}
       <section className="bg-amber-50 border-2 border-amber-200 rounded-lg p-6 text-center space-y-3">
-        <div className="text-3xl">☕</div>
+        <div className="text-3xl">💛</div>
         <p className="text-lg font-semibold text-amber-900">이 분석이 도움이 되셨나요?</p>
         <p className="text-sm text-amber-700">
-          커피 한잔으로 서비스 개선을 응원해주세요!
+          990원으로 서비스 개선을 응원해주세요!
           <br />
           <span className="text-xs">(선택사항이며, 후원하시면 전체 상세 분석이 잠금 해제됩니다)</span>
         </p>

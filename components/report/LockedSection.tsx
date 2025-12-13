@@ -33,7 +33,9 @@ export function LockedSection({
     // window.open("https://www.buymeacoffee.com/YOUR_USERNAME", "_blank");
     localStorage.setItem("team-saju-donated", "true");
     setShowModal(false);
-    window.location.reload();
+    setIsUnlocked(true);
+    // 다른 LockedSection들도 업데이트되도록 이벤트 발생
+    window.dispatchEvent(new CustomEvent("donation-completed"));
   };
 
   const handleSkip = () => {
@@ -49,6 +51,17 @@ export function LockedSection({
     if (skipped === "true") {
       setIsUnlocked(true);
     }
+
+    // 다른 컴포넌트에서 후원 완료 이벤트 리스닝
+    const handleDonationEvent = () => {
+      const donated = localStorage.getItem("team-saju-donated");
+      if (donated === "true") {
+        setIsUnlocked(true);
+      }
+    };
+
+    window.addEventListener("donation-completed", handleDonationEvent);
+    return () => window.removeEventListener("donation-completed", handleDonationEvent);
   }, []);
 
   if (isUnlocked) {
@@ -94,13 +107,13 @@ export function LockedSection({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6 space-y-4">
             <div className="text-center">
-              <div className="text-5xl mb-4">☕</div>
+              <div className="text-5xl mb-4">💛</div>
               <h3 className="text-2xl font-bold text-slate-900 mb-2">전체 분석 보기</h3>
               <p className="text-slate-600 mb-4">
                 무료로 보실 수 있습니다!
                 <br />
                 <span className="text-sm">
-                  커피 한잔 후원하시면 서비스 개선에 큰 힘이 됩니다 😊
+                  990원 후원하시면 서비스 개선에 큰 힘이 됩니다 😊
                 </span>
               </p>
             </div>
@@ -110,8 +123,8 @@ export function LockedSection({
                 onClick={handleDonate}
                 className="w-full py-3 px-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
               >
-                <span className="text-xl">☕</span>
-                <span>커피 한잔 후원하고 보기</span>
+                <span className="text-xl">💛</span>
+                <span>990원 후원하고 보기</span>
               </button>
 
               <button
