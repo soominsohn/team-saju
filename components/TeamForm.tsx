@@ -52,6 +52,10 @@ export function TeamForm({
   const [teamName, setTeamName] = useState(initialTeamName);
   const [purpose, setPurpose] = useState(initialPurpose);
   const [members, setMembers] = useState<MemberInput[]>(initialMembers);
+  const [fieldErrors, setFieldErrors] = useState<{
+    teamName?: string;
+    members: { [key: number]: { displayName?: string; birthDate?: string } };
+  }>({ members: {} });
   const [validationError, setValidationError] = useState<string | null>(null);
 
   // 각 멤버의 입력 필드에 대한 ref 저장
@@ -80,6 +84,7 @@ export function TeamForm({
   };
 
   const updateMember = (index: number, field: keyof MemberInput, value: string | boolean) => {
+    if (validationError) setValidationError(null);
     setMembers((prev) => {
       const clone = [...prev];
       if (field === "isLunar") {
@@ -174,64 +179,85 @@ export function TeamForm({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setValidationError(null);
+
+    const errors: {
+      teamName?: string;
+      members: { [key: number]: { displayName?: string; birthDate?: string } };
+    } = { members: {} };
 
     // Validation
     if (!teamName.trim()) {
-      setValidationError("팀 이름을 입력해주세요.");
-      return;
+      errors.teamName = "팀 이름을 입력해주세요.";
     }
 
     for (let i = 0; i < members.length; i++) {
       const member = members[i];
+      errors.members[i] = {};
 
       if (!member.displayName.trim()) {
-        setValidationError(`${i + 1}번째 팀원의 닉네임을 입력해주세요.`);
-        return;
+        errors.members[i].displayName = "닉네임을 입력해주세요.";
       }
 
       if (!member.birthYear || !member.birthMonth || !member.birthDay) {
-        setValidationError(`${member.displayName}님의 생년월일을 입력해주세요.`);
-        return;
-      }
+        errors.members[i].birthDate = "생년월일을 입력해주세요.";
+      } else {
 
-      // 년도 validation (1900-2100)
-      const year = parseInt(member.birthYear);
-      if (year < 1900 || year > 2100) {
-        setValidationError(`${member.displayName}님의 생년월일이 올바르지 않습니다. (년도: 1900-2100)`);
-        return;
-      }
 
-      // 월 validation (1-12)
-      const month = parseInt(member.birthMonth);
-      if (month < 1 || month > 12) {
-        setValidationError(`${member.displayName}님의 생년월일이 올바르지 않습니다. (월: 1-12)`);
-        return;
-      }
+        // 월 validation (1-12)
+        const month = parseInt(member.birthMonth);
+        if (month < 1 || month > 12) {
+          errors.members[i].birthDate = "생년월일이 올바르지 않습니다. (월: 1-12)";
+        }
 
-      // 일 validation
-      const day = parseInt(member.birthDay);
-      const maxDays = getDaysInMonth(member.birthYear, member.birthMonth);
-      if (day < 1 || day > maxDays) {
-        setValidationError(`${member.displayName}님의 생년월일이 올바르지 않습니다. (일: 1-${maxDays})`);
-        return;
+        // 일 validation
+        const day = parseInt(member.birthDay);
+        const maxDays = getDaysInMonth(member.birthYear, member.birthMonth);
+        if (day < 1 || day > maxDays) {
+          errors.members[i].birthDate = `생년월일이 올바르지 않습니다. (일: 1-${maxDays})`;
+        }
       }
     }
 
+    // 에러가 있는지 확인
+    const hasErrors = errors.teamName || Object.values(errors.members).some(
+      (memberErrors) => memberErrors.displayName || memberErrors.birthDate
+    );
+
+    if (hasErrors) {
+      setFieldErrors(errors);
+      setValidationError("필수 항목을 모두 입력해주세요. 오류가 있는 입력창은 빨간색으로 표시됩니다.");
+      return;
+    }
+
+    setFieldErrors({ members: {} });
     await onSubmit({ teamName, purpose, members });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white shadow rounded-lg">
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white shadow rounded-lg" noValidate>
       <section className="space-y-2">
         <label className="block text-sm font-semibold">팀 이름</label>
         <input
-          className="w-full rounded border border-slate-300 px-3 py-2"
+          className={`w-full rounded border px-3 py-2 ${
+            fieldErrors.teamName ? "border-rose-500" : "border-slate-300"
+          }`}
           placeholder="예: Product Innovation"
           value={teamName}
-          onChange={(e) => setTeamName(e.target.value)}
+          onChange={(e) => {
+            setTeamName(e.target.value);
+            if (validationError) setValidationError(null);
+            if (fieldErrors.teamName) {
+              setFieldErrors((prev) => ({ ...prev, teamName: undefined }));
+            }
+          }}
           maxLength={200}
         />
+        {fieldErrors.teamName && (
+          <p className="text-sm text-rose-600 flex items-center gap-1">
+            <span>⚠️</span>
+            <span>{fieldErrors.teamName}</span>
+          </p>
+        )}
       </section>
       <section className="space-y-2">
         <label className="block text-sm font-semibold">팀 목적</label>
@@ -239,7 +265,10 @@ export function TeamForm({
           className="w-full rounded border border-slate-300 px-3 py-2"
           placeholder="예: 신규 서비스 기획"
           value={purpose}
-          onChange={(e) => setPurpose(e.target.value)}
+          onChange={(e) => {
+            setPurpose(e.target.value);
+            if (validationError) setValidationError(null);
+          }}
           maxLength={200}
         />
       </section>
@@ -247,14 +276,28 @@ export function TeamForm({
         <h2 className="text-lg font-semibold">팀원 정보</h2>
         {members.map((member, index) => (
           <div key={index} className="space-y-3 border border-slate-200 rounded-md p-3">
-            <div className="flex gap-3">
-              <input
-                className="flex-1 rounded border border-slate-300 px-3 py-2"
-                placeholder="닉네임"
-                value={member.displayName}
-                onChange={(e) => updateMember(index, "displayName", e.target.value)}
-                maxLength={200}
-              />
+            <div className="space-y-2">
+              <div className="flex gap-3">
+                <input
+                  className={`flex-1 rounded border px-3 py-2 ${
+                    fieldErrors.members[index]?.displayName ? "border-rose-500" : "border-slate-300"
+                  }`}
+                  placeholder="닉네임"
+                  value={member.displayName}
+                  onChange={(e) => {
+                    updateMember(index, "displayName", e.target.value);
+                    if (fieldErrors.members[index]?.displayName) {
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        members: {
+                          ...prev.members,
+                          [index]: { ...prev.members[index], displayName: undefined },
+                        },
+                      }));
+                    }
+                  }}
+                  maxLength={200}
+                />
               {members.length > 1 && (
                 <button
                   type="button"
@@ -265,21 +308,39 @@ export function TeamForm({
                 </button>
               )}
             </div>
+            {fieldErrors.members[index]?.displayName && (
+              <p className="text-sm text-rose-600 flex items-center gap-1">
+                <span>⚠️</span>
+                <span>{fieldErrors.members[index].displayName}</span>
+              </p>
+            )}
+            </div>
 
             {/* 생년월일 입력 (년/월/일 순서) */}
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">생년월일</label>
+            <div className="space-y-2">
+              <label className="block text-xs text-slate-600">생년월일</label>
               <div className="grid grid-cols-3 gap-2">
                 <input
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  className="rounded border border-slate-300 px-3 py-2"
+                  className={`rounded border px-3 py-2 ${
+                    fieldErrors.members[index]?.birthDate ? "border-rose-500" : "border-slate-300"
+                  }`}
                   placeholder="년 (YYYY)"
                   value={member.birthYear}
                   onChange={(e) => {
                     const value = e.target.value.replace(/[^0-9]/g, "");
                     updateMember(index, "birthYear", value);
+                    if (fieldErrors.members[index]?.birthDate) {
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        members: {
+                          ...prev.members,
+                          [index]: { ...prev.members[index], birthDate: undefined },
+                        },
+                      }));
+                    }
                   }}
                   onKeyPress={(e) => {
                     if (!/[0-9]/.test(e.key)) {
@@ -295,12 +356,23 @@ export function TeamForm({
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  className="rounded border border-slate-300 px-3 py-2"
+                  className={`rounded border px-3 py-2 ${
+                    fieldErrors.members[index]?.birthDate ? "border-rose-500" : "border-slate-300"
+                  }`}
                   placeholder="월 (MM)"
                   value={member.birthMonth}
                   onChange={(e) => {
                     const value = e.target.value.replace(/[^0-9]/g, "");
                     updateMember(index, "birthMonth", value);
+                    if (fieldErrors.members[index]?.birthDate) {
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        members: {
+                          ...prev.members,
+                          [index]: { ...prev.members[index], birthDate: undefined },
+                        },
+                      }));
+                    }
                   }}
                   onKeyPress={(e) => {
                     if (!/[0-9]/.test(e.key)) {
@@ -316,12 +388,23 @@ export function TeamForm({
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  className="rounded border border-slate-300 px-3 py-2"
+                  className={`rounded border px-3 py-2 ${
+                    fieldErrors.members[index]?.birthDate ? "border-rose-500" : "border-slate-300"
+                  }`}
                   placeholder="일 (DD)"
                   value={member.birthDay}
                   onChange={(e) => {
                     const value = e.target.value.replace(/[^0-9]/g, "");
                     updateMember(index, "birthDay", value);
+                    if (fieldErrors.members[index]?.birthDate) {
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        members: {
+                          ...prev.members,
+                          [index]: { ...prev.members[index], birthDate: undefined },
+                        },
+                      }));
+                    }
                   }}
                   onKeyPress={(e) => {
                     if (!/[0-9]/.test(e.key)) {
@@ -331,6 +414,12 @@ export function TeamForm({
                   required
                 />
               </div>
+              {fieldErrors.members[index]?.birthDate && (
+                <p className="text-sm text-rose-600 flex items-center gap-1">
+                  <span>⚠️</span>
+                  <span>{fieldErrors.members[index].birthDate}</span>
+                </p>
+              )}
             </div>
 
             {/* 양력/음력 선택 */}
@@ -441,6 +530,17 @@ export function TeamForm({
           <span>팀원 추가</span>
         </button>
       </div>
+
+      {validationError && (
+        <div className="bg-rose-50 border-2 border-rose-200 rounded-lg p-4 flex items-start gap-3">
+          <span className="text-2xl">⚠️</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-rose-900 mb-1">입력 항목 오류</p>
+            <p className="text-sm text-rose-700">{validationError}</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-3">
         <button
           type="submit"
@@ -459,12 +559,12 @@ export function TeamForm({
           </button>
         )}
       </div>
-      {(error || validationError) && (
+      {error && (
         <div className="bg-rose-50 border-2 border-rose-200 rounded-lg p-4 flex items-start gap-3">
           <span className="text-2xl">⚠️</span>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-rose-900 mb-1">입력 오류</p>
-            <p className="text-sm text-rose-700">{validationError || error}</p>
+            <p className="text-sm font-semibold text-rose-900 mb-1">서버 오류</p>
+            <p className="text-sm text-rose-700">{error}</p>
           </div>
         </div>
       )}
