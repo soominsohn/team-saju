@@ -45,6 +45,7 @@ export function ResultPanel({
   shareMode?: "inline" | "minimal";
   onEdit?: () => void;
 }) {
+  const donated = result.donated ?? false;
   const aggregatedProfiles = useMemo(() => result.members.map((member) => member.profile), [result]);
   const graphMembers = useMemo(
     () => result.members.map((member) => ({ id: member.memberId, name: member.displayName })),
@@ -127,6 +128,9 @@ export function ResultPanel({
             <LockedSection
               title="개인별 상세 분석"
               previewText="각 팀원의 오행 밸런스를 레이더 차트로 확인하세요"
+              donated={donated}
+              teamId={result.teamId}
+              shareToken={shareToken}
             >
               <MemberRadar members={result.members} />
             </LockedSection>
@@ -175,6 +179,9 @@ export function ResultPanel({
             <LockedSection
               title="팀원별 역할 상세"
               previewText="각 팀원이 팀에서 어떤 역할을 맡는지 확인하세요"
+              donated={donated}
+              teamId={result.teamId}
+              shareToken={shareToken}
               preview={
                 result.members.filter((member) => member.role).length > 0 ? (
                   <div className="grid md:grid-cols-2 gap-3">
@@ -223,6 +230,9 @@ export function ResultPanel({
           <LockedSection
             title="팀원 간 궁합 상세 분석"
             previewText="누가 누구와 잘 맞는지, 어떤 점을 주의해야 하는지 구체적인 분석을 확인하세요"
+            donated={donated}
+            teamId={result.teamId}
+            shareToken={shareToken}
             preview={
               result.pairs.length > 0 ? (
                 <CompatibilityDetails pairs={result.pairs.slice(0, 1)} members={graphMembers} />
@@ -240,6 +250,9 @@ export function ResultPanel({
           <LockedSection
             title="AI 기반 팀 인사이트"
             previewText="우리 팀만의 강점과 개선점을 확인하세요"
+            donated={donated}
+            teamId={result.teamId}
+            shareToken={shareToken}
             preview={
               result.insights.length > 0 ? (
                 <InsightCards insights={result.insights.slice(0, 1)} />
@@ -250,21 +263,35 @@ export function ResultPanel({
           </LockedSection>
         </section>
       )}
-      {/* 후원 CTA */}
+      {/* 후원 CTA - 항상 표시 */}
       <section className="bg-amber-50 border-2 border-amber-200 rounded-lg p-6 text-center space-y-3">
         <div className="text-3xl">💛</div>
-        <p className="text-lg font-semibold text-amber-900">이 분석이 도움이 되셨나요?</p>
+        <p className="text-lg font-semibold text-amber-900">
+          {donated ? "후원해주셔서 감사합니다!" : "이 분석이 도움이 되셨나요?"}
+        </p>
         <p className="text-sm text-amber-700">
-          990원으로 서비스 개선을 응원해주세요!
-          <br />
-          <span className="text-xs">(선택사항이며, 후원하시면 전체 상세 분석이 잠금 해제됩니다)</span>
+          {donated ? (
+            <>
+              여러분의 후원이 서비스를 더 좋게 만듭니다
+              <br />
+              <span className="text-xs">추가 후원도 언제나 환영합니다 😊</span>
+            </>
+          ) : (
+            <>
+              990원으로 서비스 개선을 응원해주세요!
+              <br />
+              <span className="text-xs">(선택사항이며, 후원하시면 전체 상세 분석이 잠금 해제됩니다)</span>
+            </>
+          )}
         </p>
         <div className="flex justify-center">
-          <SupportButton variant="default" />
+          <SupportButton variant="default" teamId={result.teamId} shareToken={shareToken} />
         </div>
-        <p className="text-xs text-slate-600 mt-2">
-          후원을 하면 모든 블러가 사라집니다
-        </p>
+        {!donated && (
+          <p className="text-xs text-slate-600 mt-2">
+            후원을 하면 모든 블러가 사라집니다
+          </p>
+        )}
       </section>
 
       <section className="text-xs text-slate-500">

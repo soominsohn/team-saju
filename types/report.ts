@@ -49,6 +49,7 @@ export type TeamReportResponse = {
   teamName: string;
   purpose?: string | null;
   shareToken?: string;
+  donated?: boolean;
   teamScore: TeamIndices;
   members: MemberReport[];
   pairs: PairReport[];

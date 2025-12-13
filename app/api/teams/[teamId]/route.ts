@@ -30,6 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: { teamId: 
       teamName: report.team.name,
       purpose: report.team.purpose,
       shareToken: report.team.shareToken,
+      donated: report.team.donated,
       teamScore: report.teamScore,
       members: report.memberSummaries,
       pairs: report.pairScores,

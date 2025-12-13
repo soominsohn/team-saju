@@ -1,27 +1,44 @@
 "use client";
 
 import { useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 
-export function SupportButton({ variant = "default" }: { variant?: "default" | "locked" | "minimal" }) {
+export function SupportButton({
+  variant = "default",
+  teamId,
+  shareToken,
+}: {
+  variant?: "default" | "locked" | "minimal";
+  teamId?: string;
+  shareToken?: string | null;
+}) {
   const [showModal, setShowModal] = useState(false);
 
   const handleButtonClick = () => {
     setShowModal(true);
   };
 
-  const handleDonate = () => {
-    // Mock: 실제로는 Buy Me a Coffee URL
-    // window.open("https://www.buymeacoffee.com/YOUR_USERNAME", "_blank");
+  const handleDonate = async () => {
+    if (!teamId) return;
 
-    // 데모용: localStorage에 후원 기록
-    localStorage.setItem("team-saju-donated", "true");
-    setShowModal(false);
-    // 모든 LockedSection이 업데이트되도록 이벤트 발생
-    window.dispatchEvent(new CustomEvent("donation-completed"));
+    try {
+      const query = shareToken ? `?token=${shareToken}` : "";
+      const response = await fetch(`/api/teams/${teamId}/donate${query}`, {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        setShowModal(false);
+        // 페이지 새로고침하여 최신 donated 상태 반영
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Donation error:", error);
+    }
   };
 
   const handleSkip = () => {
-    // "나중에 할래요" - 하단 버튼에서는 그냥 모달만 닫기
+    // 모달만 닫기
     setShowModal(false);
   };
 
@@ -64,14 +81,38 @@ export function SupportButton({ variant = "default" }: { variant?: "default" | "
           <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6 space-y-4">
             <div className="text-center">
               <div className="text-5xl mb-4">💛</div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">전체 분석 보기</h3>
-              <p className="text-slate-600 mb-4">
-                무료로 보실 수 있습니다!
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">후원하기</h3>
+              <p className="text-slate-600 mb-4 text-sm">
+                카카오페이로 간편하게 후원하시면
                 <br />
-                <span className="text-sm">
-                  990원 후원하시면 서비스 개선에 큰 힘이 됩니다 😊
-                </span>
+                서비스 개선에 큰 힘이 됩니다
               </p>
+            </div>
+
+            {/* 카카오페이 QR 코드 */}
+            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 space-y-3">
+              <div className="flex justify-center">
+                <div className="bg-white p-3 rounded-lg shadow">
+                  <QRCodeSVG
+                    value="https://qr.kakaopay.com/Ej7mhmDyi1ef05326"
+                    size={180}
+                    level="H"
+                    includeMargin={false}
+                  />
+                </div>
+              </div>
+              <div className="text-center space-y-2">
+                <p className="text-sm font-semibold text-slate-800">990원 여기로 보내주세요</p>
+                <a
+                  href="https://qr.kakaopay.com/Ej7mhmDyi1ef05326"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:text-blue-800 underline block break-all"
+                >
+                  https://qr.kakaopay.com/Ej7mhmDyi1ef05326
+                </a>
+                <p className="text-xs text-slate-600">링크를 눌러 간편하고 안전하게 보내실 수 있습니다</p>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -79,20 +120,20 @@ export function SupportButton({ variant = "default" }: { variant?: "default" | "
                 onClick={handleDonate}
                 className="w-full py-3 px-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
               >
-                <span className="text-xl">💛</span>
-                <span>990원 후원하고 보기</span>
+                <span className="text-xl">✓</span>
+                <span>후원 완료했어요</span>
               </button>
 
               <button
                 onClick={handleSkip}
-                className="w-full py-2 px-4 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition-colors"
+                className="w-full py-2 px-4 text-slate-600 text-sm hover:text-slate-800 transition-colors"
               >
-                아니요, 나중에 할래요
+                닫기
               </button>
             </div>
 
             <p className="text-xs text-center text-slate-500">
-              💛 지금 바로 무료로 보시거나, 후원하시면 큰 도움이 돼요
+              💛 후원해주시면 서비스 개선에 큰 힘이 됩니다
             </p>
           </div>
         </div>
