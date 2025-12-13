@@ -308,14 +308,19 @@ function RoleCardSection({
         </div>
 
         {!isUnlocked && (
-          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent flex items-end justify-center p-4">
-            <button
-              onClick={() => setShowUnlockModal(true)}
-              className="mt-4 px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 mx-auto"
-            >
-              <span className="text-xl">🔓</span>
-              <span>전체 보기</span>
-            </button>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/80 to-white flex items-center justify-center p-4">
+            <div className="text-center space-y-3 max-w-md">
+              <div className="text-3xl">🔒</div>
+              <h5 className="text-lg font-semibold text-slate-800">팀원별 맞춤 역할 분석</h5>
+              <p className="text-sm text-slate-600">각 팀원이 팀 내에서 어떤 역할을 맡으면 좋을지 오행 기질 기반으로 확인하세요</p>
+              <button
+                onClick={() => setShowUnlockModal(true)}
+                className="mt-4 px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 mx-auto"
+              >
+                <span className="text-xl">🔓</span>
+                <span>전체 보기</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -441,14 +446,19 @@ function InsightCardsSection({
         </div>
 
         {!isUnlocked && (
-          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent flex items-end justify-center p-4">
-            <button
-              onClick={() => setShowUnlockModal(true)}
-              className="mt-4 px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 mx-auto"
-            >
-              <span className="text-xl">🔓</span>
-              <span>전체 보기</span>
-            </button>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/80 to-white flex items-center justify-center p-4">
+            <div className="text-center space-y-3 max-w-md">
+              <div className="text-3xl">🔒</div>
+              <h5 className="text-lg font-semibold text-slate-800">팀 종합 인사이트</h5>
+              <p className="text-sm text-slate-600">팀의 강점과 주의사항, 개선 방향을 한눈에 확인하세요</p>
+              <button
+                onClick={() => setShowUnlockModal(true)}
+                className="mt-4 px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 mx-auto"
+              >
+                <span className="text-xl">🔓</span>
+                <span>전체 보기</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
