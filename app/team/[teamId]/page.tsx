@@ -9,9 +9,7 @@ import type { TeamReportResponse } from "@/types/report";
 
 export default function TeamReportPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const teamId = params.teamId as string;
-  const token = searchParams.get("token") ?? "";
 
   const [report, setReport] = useState<TeamReportResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,8 +27,7 @@ export default function TeamReportPage() {
   useEffect(() => {
     const fetchReport = async () => {
       try {
-        const query = token ? `?token=${token}` : "";
-        const response = await fetch(`/api/teams/${teamId}${query}`);
+        const response = await fetch(`/api/teams/${teamId}`);
 
         if (!response.ok) {
           throw new Error("리포트를 불러오는 중 오류가 발생했습니다");
@@ -88,15 +85,14 @@ export default function TeamReportPage() {
     };
 
     fetchReport();
-  }, [teamId, token]);
+  }, [teamId]);
 
   const handleUpdate = async (data: { teamName: string; purpose: string; members: MemberInput[] }) => {
     setUpdating(true);
     setError(null);
 
     try {
-      const query = token ? `?token=${token}` : "";
-      const response = await fetch(`/api/teams/${teamId}${query}`, {
+      const response = await fetch(`/api/teams/${teamId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -226,7 +222,6 @@ export default function TeamReportPage() {
             {report ? (
               <ResultPanel
                 result={report}
-                shareToken={token || report.shareToken || null}
                 shareMode="inline"
               />
             ) : (
@@ -259,7 +254,6 @@ export default function TeamReportPage() {
       </header>
       <ResultPanel
         result={report}
-        shareToken={token || report.shareToken || null}
         shareMode="inline"
         onEdit={() => setEditMode(true)}
       />

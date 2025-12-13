@@ -10,7 +10,6 @@ export function LockedSection({
   previewText,
   donated = false,
   teamId,
-  shareToken,
 }: {
   children: React.ReactNode;
   preview?: React.ReactNode;
@@ -18,7 +17,6 @@ export function LockedSection({
   previewText: string;
   donated?: boolean;
   teamId?: string;
-  shareToken?: string | null;
 }) {
   const [isUnlocked, setIsUnlocked] = useState(donated);
   const [showModal, setShowModal] = useState(false);
@@ -38,8 +36,7 @@ export function LockedSection({
     if (!teamId) return;
 
     try {
-      const query = shareToken ? `?token=${shareToken}` : "";
-      const response = await fetch(`/api/teams/${teamId}/donate${query}`, {
+      const response = await fetch(`/api/teams/${teamId}/donate`, {
         method: "POST",
       });
 

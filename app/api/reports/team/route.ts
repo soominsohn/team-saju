@@ -34,7 +34,6 @@ export async function POST(request: Request) {
       teamId: result.team.id,
       teamName: payload.teamName,
       purpose: payload.purpose,
-      shareToken: result.team.shareToken,
       teamScore: result.teamScore,
       members: result.memberSummaries,
       pairs: result.pairScores,

@@ -89,8 +89,8 @@ function TeamPlanner({
       const responseData: ApiResponse = await response.json();
 
       // 공유 URL로 리다이렉트
-      if (responseData.teamId && responseData.shareToken) {
-        router.push(`/team/${responseData.teamId}?token=${responseData.shareToken}`);
+      if (responseData.teamId) {
+        router.push(`/team/${responseData.teamId}`);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다");

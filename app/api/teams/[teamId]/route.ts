@@ -21,15 +21,12 @@ const updateRequestSchema = z.object({
 
 export async function GET(request: NextRequest, { params }: { params: { teamId: string } }) {
   try {
-    const url = new URL(request.url);
-    const shareToken = url.searchParams.get("token") ?? undefined;
-    const report = await getTeamReport(params.teamId, shareToken);
+    const report = await getTeamReport(params.teamId);
 
     return NextResponse.json({
       teamId: report.team.id,
       teamName: report.team.name,
       purpose: report.team.purpose,
-      shareToken: report.team.shareToken,
       donated: report.team.donated,
       teamScore: report.teamScore,
       members: report.memberSummaries,
@@ -54,18 +51,15 @@ export async function GET(request: NextRequest, { params }: { params: { teamId: 
 
 export async function PUT(request: NextRequest, { params }: { params: { teamId: string } }) {
   try {
-    const url = new URL(request.url);
-    const shareToken = url.searchParams.get("token") ?? undefined;
     const json = await request.json();
     const payload = updateRequestSchema.parse(json);
 
-    const result = await updateTeamWithReport(params.teamId, payload, shareToken);
+    const result = await updateTeamWithReport(params.teamId, payload);
 
     return NextResponse.json({
       teamId: result.team.id,
       teamName: payload.teamName,
       purpose: payload.purpose,
-      shareToken: result.team.shareToken,
       teamScore: result.teamScore,
       members: result.memberSummaries,
       pairs: result.pairScores,

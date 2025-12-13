@@ -68,7 +68,6 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
         name: parsed.teamName,
         purpose: parsed.purpose ?? null,
         ownerId: null,
-        shareToken: randomUUID(),
         expiresAt: null,
       },
     });
@@ -297,7 +296,7 @@ export async function createTeamWithReport(payload: CreateTeamPayload) {
   });
 }
 
-export async function updateTeamWithReport(teamId: string, payload: CreateTeamPayload, shareToken?: string) {
+export async function updateTeamWithReport(teamId: string, payload: CreateTeamPayload) {
   const parsed = createPayloadSchema.parse(payload);
 
   return prisma.$transaction(async (tx) => {
@@ -308,10 +307,6 @@ export async function updateTeamWithReport(teamId: string, payload: CreateTeamPa
 
     if (!team) {
       throw new Error("TEAM_NOT_FOUND");
-    }
-
-    if (shareToken && team.shareToken !== shareToken) {
-      throw new Error("FORBIDDEN");
     }
 
     // Update team info
@@ -557,7 +552,7 @@ export async function updateTeamWithReport(teamId: string, payload: CreateTeamPa
   });
 }
 
-export async function getTeamReport(teamId: string, shareToken?: string) {
+export async function getTeamReport(teamId: string) {
   const team = await prisma.team.findUnique({
     where: { id: teamId },
     include: {
@@ -574,10 +569,6 @@ export async function getTeamReport(teamId: string, shareToken?: string) {
 
   if (!team) {
     throw new Error("TEAM_NOT_FOUND");
-  }
-
-  if (shareToken && team.shareToken !== shareToken) {
-    throw new Error("FORBIDDEN");
   }
 
   const relationSeeds: Array<{ memberId: string; displayName: string; branch: EarthlyBranch }> = [];

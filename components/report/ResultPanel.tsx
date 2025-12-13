@@ -37,12 +37,10 @@ const relationTypeLabel: Record<string, string> = {
 
 export function ResultPanel({
   result,
-  shareToken,
   shareMode = "inline",
   onEdit,
 }: {
   result: TeamReportResponse;
-  shareToken: string | null;
   shareMode?: "inline" | "minimal";
   onEdit?: () => void;
 }) {
@@ -72,9 +70,7 @@ export function ResultPanel({
                 팀원 추가/수정
               </button>
             )}
-            {shareToken && shareMode === "inline" && (
-              <ShareLink teamId={result.teamId} token={shareToken} />
-            )}
+            {shareMode === "inline" && <ShareLink teamId={result.teamId} />}
           </div>
         </div>
       </header>
@@ -131,7 +127,6 @@ export function ResultPanel({
               previewText="각 팀원의 오행 밸런스를 레이더 차트로 확인하세요"
               donated={donated}
               teamId={result.teamId}
-              shareToken={shareToken}
             >
               <MemberRadar members={result.members} />
             </LockedSection>
@@ -176,7 +171,7 @@ export function ResultPanel({
             <TeamRoleDistributionView distribution={result.roleDistribution} />
           </div>
           <div className="md:col-span-2">
-            <RoleCardSection result={result} donated={donated} shareToken={shareToken} />
+            <RoleCardSection result={result} donated={donated} />
           </div>
         </section>
       )}
@@ -205,14 +200,13 @@ export function ResultPanel({
             members={graphMembers}
             donated={donated}
             teamId={result.teamId}
-            shareToken={shareToken}
           />
         </section>
       )}
       {/* 팀 인사이트 */}
       {result.insights && result.insights.length > 0 && (
         <section>
-          <InsightCardsSection result={result} donated={donated} shareToken={shareToken} />
+          <InsightCardsSection result={result} donated={donated} />
         </section>
       )}
       {/* 후원 CTA - 항상 표시 */}
@@ -237,7 +231,7 @@ export function ResultPanel({
           )}
         </p>
         <div className="flex justify-center">
-          <SupportButton variant="default" teamId={result.teamId} shareToken={shareToken} />
+          <SupportButton variant="default" teamId={result.teamId} />
         </div>
         {!donated && (
           <p className="text-xs text-slate-600 mt-2">
@@ -256,11 +250,9 @@ export function ResultPanel({
 function RoleCardSection({
   result,
   donated,
-  shareToken,
 }: {
   result: TeamReportResponse;
   donated: boolean;
-  shareToken: string | null;
 }) {
   const [isUnlocked, setIsUnlocked] = useState(donated);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
@@ -276,8 +268,7 @@ function RoleCardSection({
     if (!teamId) return;
 
     try {
-      const query = shareToken ? `?token=${shareToken}` : "";
-      const response = await fetch(`/api/teams/${teamId}/donate${query}`, {
+      const response = await fetch(`/api/teams/${teamId}/donate`, {
         method: "POST",
       });
 
@@ -399,11 +390,9 @@ function RoleCardSection({
 function InsightCardsSection({
   result,
   donated,
-  shareToken,
 }: {
   result: TeamReportResponse;
   donated: boolean;
-  shareToken: string | null;
 }) {
   const [isUnlocked, setIsUnlocked] = useState(donated);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
@@ -419,8 +408,7 @@ function InsightCardsSection({
     if (!teamId) return;
 
     try {
-      const query = shareToken ? `?token=${shareToken}` : "";
-      const response = await fetch(`/api/teams/${teamId}/donate${query}`, {
+      const response = await fetch(`/api/teams/${teamId}/donate`, {
         method: "POST",
       });
 
@@ -581,10 +569,11 @@ function ScoreMetric({
   );
 }
 
-function ShareLink({ teamId, token }: { teamId: string; token: string }) {
-  const shareUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/team/${teamId}?token=${token}`
-    : `/team/${teamId}?token=${token}`;
+function ShareLink({ teamId }: { teamId: string }) {
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/team/${teamId}`
+      : `/team/${teamId}`;
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {

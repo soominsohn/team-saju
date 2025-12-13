@@ -6,11 +6,9 @@ import { QRCodeSVG } from "qrcode.react";
 export function SupportButton({
   variant = "default",
   teamId,
-  shareToken,
 }: {
   variant?: "default" | "locked" | "minimal";
   teamId?: string;
-  shareToken?: string | null;
 }) {
   const [showModal, setShowModal] = useState(false);
 
@@ -22,8 +20,7 @@ export function SupportButton({
     if (!teamId) return;
 
     try {
-      const query = shareToken ? `?token=${shareToken}` : "";
-      const response = await fetch(`/api/teams/${teamId}/donate${query}`, {
+      const response = await fetch(`/api/teams/${teamId}/donate`, {
         method: "POST",
       });
 

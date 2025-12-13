@@ -9,10 +9,9 @@ type Props = {
   members: Array<{ id: string; name: string }>;
   donated: boolean;
   teamId: string;
-  shareToken: string | null;
 };
 
-export function CompatibilityDetails({ pairs, members, donated, teamId, shareToken }: Props) {
+export function CompatibilityDetails({ pairs, members, donated, teamId }: Props) {
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
   const getMemberName = (memberId: string) => {
@@ -197,7 +196,6 @@ export function CompatibilityDetails({ pairs, members, donated, teamId, shareTok
           previewText="누가 누구와 잘 맞는지, 어떤 점을 주의해야 하는지 구체적인 분석을 확인하세요"
           donated={donated}
           teamId={teamId}
-          shareToken={shareToken}
           preview={renderPairCards(filteredPairs.slice(0, 1))}
         >
           {renderPairCards(filteredPairs.slice(1))}
