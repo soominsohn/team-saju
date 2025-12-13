@@ -8,7 +8,7 @@ import { TeamElementPie } from "@/components/charts/TeamElementPie";
 import { RoleCard } from "@/components/report/RoleCard";
 import { TeamRoleDistributionView } from "@/components/report/TeamRoleDistribution";
 import { CompatibilityDetails } from "@/components/report/CompatibilityDetails";
-import { InsightCards } from "@/components/report/InsightCards";
+import { InsightCard } from "@/components/report/InsightCard";
 import { LockedSection } from "@/components/report/LockedSection";
 import { SupportButton } from "@/components/SupportButton";
 import { getElementLabel } from "@/lib/elements";
@@ -212,21 +212,7 @@ export function ResultPanel({
       {/* 팀 인사이트 */}
       {result.insights && result.insights.length > 0 && (
         <section>
-          <h4 className="font-semibold mb-3">팀 인사이트</h4>
-          <LockedSection
-            title="AI 기반 팀 인사이트"
-            previewText="우리 팀만의 강점과 개선점을 확인하세요"
-            donated={donated}
-            teamId={result.teamId}
-            shareToken={shareToken}
-            preview={
-              result.insights.length > 0 ? (
-                <InsightCards insights={result.insights.slice(0, 1)} />
-              ) : null
-            }
-          >
-            <InsightCards insights={result.insights.slice(1)} />
-          </LockedSection>
+          <InsightCardsSection result={result} donated={donated} shareToken={shareToken} />
         </section>
       )}
       {/* 후원 CTA - 항상 표시 */}
@@ -325,6 +311,142 @@ function RoleCardSection({
               key={member.memberId}
               displayName={member.displayName}
               role={member.role!}
+              className={!isUnlocked && index > 0 ? "blur-sm pointer-events-none" : ""}
+            />
+          ))}
+        </div>
+
+        {!isUnlocked && (
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent flex items-end justify-center p-4">
+            <button
+              onClick={() => setShowUnlockModal(true)}
+              className="mt-4 px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 mx-auto"
+            >
+              <span className="text-xl">🔓</span>
+              <span>전체 보기</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showUnlockModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6 space-y-4">
+            <div className="text-center">
+              <div className="text-5xl mb-4">💛</div>
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">전체 분석 보기</h3>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-900">
+                  <strong>✨ 모든 분석은 무료입니다!</strong>
+                  <br />
+                  <span className="text-xs text-blue-700">
+                    "무료로 바로 볼게요"를 누르시면 바로 확인하실 수 있어요.
+                    <br />
+                    후원은 선택사항이며, 서비스 개선에 큰 힘이 됩니다.
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 space-y-3">
+              <div className="flex justify-center">
+                <div className="bg-white p-3 rounded-lg shadow">
+                  <QRCodeSVG
+                    value="https://qr.kakaopay.com/Ej7mhmDyi1ef05326"
+                    size={180}
+                    level="H"
+                    includeMargin={false}
+                  />
+                </div>
+              </div>
+              <div className="text-center space-y-2">
+                <p className="text-sm font-semibold text-slate-800">990원 여기로 보내주세요</p>
+                <a
+                  href="https://qr.kakaopay.com/Ej7mhmDyi1ef05326"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:text-blue-800 underline block break-all"
+                >
+                  https://qr.kakaopay.com/Ej7mhmDyi1ef05326
+                </a>
+                <p className="text-xs text-slate-600">QR코드를 스캔하거나 링크를 눌러 간편하고 안전하게 보내실 수 있습니다</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={handleDonate}
+                className="w-full py-3 px-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+              >
+                <span className="text-xl">✓</span>
+                <span>990원 후원 완료했어요</span>
+              </button>
+
+              <button
+                onClick={handleSkip}
+                className="w-full py-2 px-4 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition-colors"
+              >
+                무료로 바로 볼게요
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InsightCardsSection({
+  result,
+  donated,
+  shareToken,
+}: {
+  result: TeamReportResponse;
+  donated: boolean;
+  shareToken: string | null;
+}) {
+  const [isUnlocked, setIsUnlocked] = useState(donated);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const insights = result.insights ?? [];
+
+  const handleSkip = () => {
+    setIsUnlocked(true);
+    setShowUnlockModal(false);
+  };
+
+  const handleDonate = async () => {
+    const teamId = result.teamId;
+    if (!teamId) return;
+
+    try {
+      const query = shareToken ? `?token=${shareToken}` : "";
+      const response = await fetch(`/api/teams/${teamId}/donate${query}`, {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        setShowUnlockModal(false);
+        setIsUnlocked(true);
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Donation error:", error);
+    }
+  };
+
+  if (insights.length === 0) {
+    return null;
+  }
+
+  return (
+    <div>
+      <h4 className="font-semibold mb-3">팀 인사이트</h4>
+      <div className="relative">
+        <div className="space-y-3">
+          {insights.map((insight, index) => (
+            <InsightCard
+              key={index}
+              insight={insight}
               className={!isUnlocked && index > 0 ? "blur-sm pointer-events-none" : ""}
             />
           ))}
