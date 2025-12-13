@@ -43,7 +43,6 @@ function TeamPlanner({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResponse | null>(null);
-  const [shareToken, setShareToken] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [initialFormData, setInitialFormData] = useState<{
     teamName: string;
@@ -55,7 +54,6 @@ function TeamPlanner({
     setLoading(true);
     setError(null);
     setResult(null);
-    setShareToken(null);
 
     try {
       const response = await fetch("/api/reports/team", {

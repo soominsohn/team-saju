@@ -712,7 +712,6 @@ export async function getTeamReport(teamId: string) {
       id: team.id,
       name: team.name,
       purpose: team.purpose,
-      shareToken: team.shareToken,
       donated: team.donated,
     },
     memberSummaries,
