@@ -52,6 +52,7 @@ export function TeamForm({
   const [teamName, setTeamName] = useState(initialTeamName);
   const [purpose, setPurpose] = useState(initialPurpose);
   const [members, setMembers] = useState<MemberInput[]>(initialMembers);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // 각 멤버의 입력 필드에 대한 ref 저장
   const monthInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -173,6 +174,50 @@ export function TeamForm({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setValidationError(null);
+
+    // Validation
+    if (!teamName.trim()) {
+      setValidationError("팀 이름을 입력해주세요.");
+      return;
+    }
+
+    for (let i = 0; i < members.length; i++) {
+      const member = members[i];
+
+      if (!member.displayName.trim()) {
+        setValidationError(`${i + 1}번째 팀원의 닉네임을 입력해주세요.`);
+        return;
+      }
+
+      if (!member.birthYear || !member.birthMonth || !member.birthDay) {
+        setValidationError(`${member.displayName}님의 생년월일을 입력해주세요.`);
+        return;
+      }
+
+      // 년도 validation (1900-2100)
+      const year = parseInt(member.birthYear);
+      if (year < 1900 || year > 2100) {
+        setValidationError(`${member.displayName}님의 생년월일이 올바르지 않습니다. (년도: 1900-2100)`);
+        return;
+      }
+
+      // 월 validation (1-12)
+      const month = parseInt(member.birthMonth);
+      if (month < 1 || month > 12) {
+        setValidationError(`${member.displayName}님의 생년월일이 올바르지 않습니다. (월: 1-12)`);
+        return;
+      }
+
+      // 일 validation
+      const day = parseInt(member.birthDay);
+      const maxDays = getDaysInMonth(member.birthYear, member.birthMonth);
+      if (day < 1 || day > maxDays) {
+        setValidationError(`${member.displayName}님의 생년월일이 올바르지 않습니다. (일: 1-${maxDays})`);
+        return;
+      }
+    }
+
     await onSubmit({ teamName, purpose, members });
   };
 
@@ -185,7 +230,7 @@ export function TeamForm({
           placeholder="예: Product Innovation"
           value={teamName}
           onChange={(e) => setTeamName(e.target.value)}
-          required
+          maxLength={200}
         />
       </section>
       <section className="space-y-2">
@@ -195,6 +240,7 @@ export function TeamForm({
           placeholder="예: 신규 서비스 기획"
           value={purpose}
           onChange={(e) => setPurpose(e.target.value)}
+          maxLength={200}
         />
       </section>
       <div className="space-y-4">
@@ -207,7 +253,7 @@ export function TeamForm({
                 placeholder="닉네임"
                 value={member.displayName}
                 onChange={(e) => updateMember(index, "displayName", e.target.value)}
-                required
+                maxLength={200}
               />
               {members.length > 1 && (
                 <button
@@ -413,7 +459,15 @@ export function TeamForm({
           </button>
         )}
       </div>
-      {error && <p className="text-sm text-rose-600">{error}</p>}
+      {(error || validationError) && (
+        <div className="bg-rose-50 border-2 border-rose-200 rounded-lg p-4 flex items-start gap-3">
+          <span className="text-2xl">⚠️</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-rose-900 mb-1">입력 오류</p>
+            <p className="text-sm text-rose-700">{validationError || error}</p>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

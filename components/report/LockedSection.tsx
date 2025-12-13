@@ -27,15 +27,8 @@ export function LockedSection({
     // donated 상태가 true면 잠금 해제
     if (donated) {
       setIsUnlocked(true);
-      return;
     }
-
-    // 세션에서 skip 여부 확인
-    const skipped = sessionStorage.getItem(`team-saju-skip-${teamId}`);
-    if (skipped === "true") {
-      setIsUnlocked(true);
-    }
-  }, [donated, teamId]);
+  }, [donated]);
 
   const handleLockClick = () => {
     setShowModal(true);
@@ -62,10 +55,7 @@ export function LockedSection({
   };
 
   const handleSkip = () => {
-    // "다음에 할게요" - 세션 동안만 잠금 해제 (DB 업데이트 없음)
-    if (teamId) {
-      sessionStorage.setItem(`team-saju-skip-${teamId}`, "true");
-    }
+    // "무료로 바로 볼게요" - 현재 페이지에서만 잠금 해제 (새로고침 시 다시 잠김)
     setShowModal(false);
     setIsUnlocked(true);
   };
@@ -150,7 +140,7 @@ export function LockedSection({
                 >
                   https://qr.kakaopay.com/Ej7mhmDyi1ef05326
                 </a>
-                <p className="text-xs text-slate-600">링크를 눌러 간편하고 안전하게 보내실 수 있습니다</p>
+                <p className="text-xs text-slate-600">QR코드를 스캔하거나 링크를 눌러 간편하고 안전하게 보내실 수 있습니다</p>
               </div>
             </div>
 
@@ -160,7 +150,7 @@ export function LockedSection({
                 className="w-full py-3 px-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
               >
                 <span className="text-xl">✓</span>
-                <span>990원 후원하고 보기</span>
+                <span>990원 후원 완료했어요</span>
               </button>
 
               <button
