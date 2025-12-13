@@ -6,11 +6,12 @@ import { getRoleLabel } from "@/lib/roles";
 type Props = {
   displayName: string;
   role: RoleProfile;
+  className?: string;
 };
 
-export function RoleCard({ displayName, role }: Props) {
+export function RoleCard({ displayName, role, className }: Props) {
   return (
-    <div className="border border-slate-200 rounded-lg p-4 space-y-3">
+    <div className={`border border-slate-200 rounded-lg p-4 space-y-3 ${className}`}>
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <div>

@@ -13,6 +13,7 @@ import { LockedSection } from "@/components/report/LockedSection";
 import { SupportButton } from "@/components/SupportButton";
 import { getElementLabel } from "@/lib/elements";
 import type { TeamReportResponse } from "@/types/report";
+import { QRCodeSVG } from "qrcode.react";
 
 const TEN_GOD_LABELS: Record<string, string> = {
   friend: "비견",
@@ -175,35 +176,7 @@ export function ResultPanel({
             <TeamRoleDistributionView distribution={result.roleDistribution} />
           </div>
           <div className="md:col-span-2">
-            <h4 className="font-semibold mb-2">팀원별 역할</h4>
-            <LockedSection
-              title="팀원별 역할 상세"
-              previewText="각 팀원이 팀에서 어떤 역할을 맡는지 확인하세요"
-              donated={donated}
-              teamId={result.teamId}
-              shareToken={shareToken}
-              preview={
-                result.members.filter((member) => member.role).length > 0 ? (
-                  <div className="grid md:grid-cols-2 gap-3">
-                    {result.members
-                      .filter((member) => member.role)
-                      .slice(0, 1)
-                      .map((member) => (
-                        <RoleCard key={member.memberId} displayName={member.displayName} role={member.role!} />
-                      ))}
-                  </div>
-                ) : null
-              }
-            >
-              <div className="grid md:grid-cols-2 gap-3 max-h-96 overflow-auto pr-2">
-                {result.members
-                  .filter((member) => member.role)
-                  .slice(1)
-                  .map((member) => (
-                    <RoleCard key={member.memberId} displayName={member.displayName} role={member.role!} />
-                  ))}
-              </div>
-            </LockedSection>
+            <RoleCardSection result={result} donated={donated} shareToken={shareToken} />
           </div>
         </section>
       )}
@@ -290,6 +263,149 @@ export function ResultPanel({
       <section className="text-xs text-slate-500">
         그래프 두께/색상은 궁합 점수를 나타냅니다. 세부 상생/상극 네트워크는 추후 고도화됩니다.
       </section>
+    </div>
+  );
+}
+
+function RoleCardSection({
+  result,
+  donated,
+  shareToken,
+}: {
+  result: TeamReportResponse;
+  donated: boolean;
+  shareToken: string | null;
+}) {
+  const [isUnlocked, setIsUnlocked] = useState(donated);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const roleMembers = result.members.filter((member) => member.role);
+
+  const handleSkip = () => {
+    setIsUnlocked(true);
+    setShowUnlockModal(false);
+  };
+
+  const handleDonate = async () => {
+    const teamId = result.teamId;
+    if (!teamId) return;
+
+    try {
+      const query = shareToken ? `?token=${shareToken}` : "";
+      const response = await fetch(`/api/teams/${teamId}/donate${query}`, {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        setShowUnlockModal(false);
+        setIsUnlocked(true);
+        // 페이지 새로고침하여 최신 donated 상태 반영
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Donation error:", error);
+    }
+  };
+
+  if (roleMembers.length === 0) {
+    return (
+      <div>
+        <h4 className="font-semibold mb-2">팀원별 역할</h4>
+        <p className="text-sm text-slate-500">분석된 역할 정보가 없습니다.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h4 className="font-semibold mb-2">팀원별 역할</h4>
+      <div className="relative">
+        <div className="grid md:grid-cols-2 gap-3">
+          {roleMembers.map((member, index) => (
+            <RoleCard
+              key={member.memberId}
+              displayName={member.displayName}
+              role={member.role!}
+              className={!isUnlocked && index > 0 ? "blur-sm pointer-events-none" : ""}
+            />
+          ))}
+        </div>
+
+        {!isUnlocked && (
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent flex items-end justify-center p-4">
+            <button
+              onClick={() => setShowUnlockModal(true)}
+              className="mt-4 px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 mx-auto"
+            >
+              <span className="text-xl">🔓</span>
+              <span>전체 보기</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showUnlockModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6 space-y-4">
+            <div className="text-center">
+              <div className="text-5xl mb-4">💛</div>
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">전체 분석 보기</h3>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-900">
+                  <strong>✨ 모든 분석은 무료입니다!</strong>
+                  <br />
+                  <span className="text-xs text-blue-700">
+                    "무료로 바로 볼게요"를 누르시면 바로 확인하실 수 있어요.
+                    <br />
+                    후원은 선택사항이며, 서비스 개선에 큰 힘이 됩니다.
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 space-y-3">
+              <div className="flex justify-center">
+                <div className="bg-white p-3 rounded-lg shadow">
+                  <QRCodeSVG
+                    value="https://qr.kakaopay.com/Ej7mhmDyi1ef05326"
+                    size={180}
+                    level="H"
+                    includeMargin={false}
+                  />
+                </div>
+              </div>
+              <div className="text-center space-y-2">
+                <p className="text-sm font-semibold text-slate-800">990원 여기로 보내주세요</p>
+                <a
+                  href="https://qr.kakaopay.com/Ej7mhmDyi1ef05326"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:text-blue-800 underline block break-all"
+                >
+                  https://qr.kakaopay.com/Ej7mhmDyi1ef05326
+                </a>
+                <p className="text-xs text-slate-600">QR코드를 스캔하거나 링크를 눌러 간편하고 안전하게 보내실 수 있습니다</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={handleDonate}
+                className="w-full py-3 px-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+              >
+                <span className="text-xl">✓</span>
+                <span>990원 후원 완료했어요</span>
+              </button>
+
+              <button
+                onClick={handleSkip}
+                className="w-full py-2 px-4 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition-colors"
+              >
+                무료로 바로 볼게요
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
