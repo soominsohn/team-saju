@@ -227,20 +227,13 @@ export function ResultPanel({
       {result.pairs.length > 0 && (
         <section>
           <h4 className="font-semibold mb-3">팀원 간 궁합 상세 분석</h4>
-          <LockedSection
-            title="팀원 간 궁합 상세 분석"
-            previewText="누가 누구와 잘 맞는지, 어떤 점을 주의해야 하는지 구체적인 분석을 확인하세요"
+          <CompatibilityDetails
+            pairs={result.pairs}
+            members={graphMembers}
             donated={donated}
             teamId={result.teamId}
             shareToken={shareToken}
-            preview={
-              result.pairs.length > 0 ? (
-                <CompatibilityDetails pairs={result.pairs.slice(0, 1)} members={graphMembers} />
-              ) : null
-            }
-          >
-            <CompatibilityDetails pairs={result.pairs.slice(1)} members={graphMembers} />
-          </LockedSection>
+          />
         </section>
       )}
       {/* 팀 인사이트 */}

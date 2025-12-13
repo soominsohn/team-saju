@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import type { PairReport } from "@/types/report";
+import { LockedSection } from "./LockedSection";
 
 type Props = {
   pairs: PairReport[];
   members: Array<{ id: string; name: string }>;
+  donated: boolean;
+  teamId: string;
+  shareToken: string | null;
 };
 
-export function CompatibilityDetails({ pairs, members }: Props) {
+export function CompatibilityDetails({ pairs, members, donated, teamId, shareToken }: Props) {
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
   const getMemberName = (memberId: string) => {
@@ -33,6 +37,127 @@ export function CompatibilityDetails({ pairs, members }: Props) {
         (pair) => pair.memberA === selectedMemberId || pair.memberB === selectedMemberId
       )
     : pairs;
+
+  const renderPairCards = (pairsToRender: PairReport[]) => {
+    if (pairsToRender.length === 0) {
+      return null;
+    }
+    return (
+      <div className="space-y-3">
+        {pairsToRender.map((pair, index) => {
+          const memberAName = getMemberName(pair.memberA);
+          const memberBName = getMemberName(pair.memberB);
+          const scoreColor = getScoreColor(pair.score);
+
+          // 선택된 멤버가 앞에 오도록 순서 조정
+          const isASelected = selectedMemberId === pair.memberA;
+          const isBSelected = selectedMemberId === pair.memberB;
+          const firstName = isBSelected ? memberBName : memberAName;
+          const secondName = isBSelected ? memberAName : memberBName;
+
+          return (
+            <div key={`${pair.memberA}-${pair.memberB}-${index}`} className="border border-slate-200 rounded-lg p-4 space-y-3">
+              {/* 헤더 */}
+              <div className="flex items-center justify-between">
+                <h5 className="font-semibold text-lg">
+                  {firstName} ↔ {secondName}
+                </h5>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-2 py-1 rounded-full border ${scoreColor}`}>
+                    {getScoreLabel(pair.score)}
+                  </span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-bold text-indigo-600">{pair.score}</span>
+                    <span className="text-xs text-slate-400">/100</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Breakdown */}
+              {pair.breakdown && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                  <BreakdownItem
+                    label="오행 조화"
+                    value={pair.breakdown.elementHarmony}
+                    max={20}
+                  />
+                  <BreakdownItem
+                    label="간지 조화"
+                    value={pair.breakdown.ganjiHarmony}
+                    max={25}
+                  />
+                  <BreakdownItem
+                    label="역할 시너지"
+                    value={pair.breakdown.roleCompatibility}
+                    max={15}
+                  />
+                  <BreakdownItem
+                    label="기운 균형"
+                    value={pair.breakdown.elementBalance}
+                    max={10}
+                  />
+                </div>
+              )}
+
+              {/* Strengths */}
+              {pair.strengths.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold text-green-700 mb-1">💚 강점</div>
+                  <div className="flex flex-wrap gap-1">
+                    {pair.strengths.map((strength, i) => (
+                      <span
+                        key={i}
+                        className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200"
+                      >
+                        {strength}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Risks */}
+              {pair.risks.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold text-orange-700 mb-1">⚠️ 주의사항</div>
+                  <div className="flex flex-wrap gap-1">
+                    {pair.risks.map((risk, i) => (
+                      <span
+                        key={i}
+                        className="text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded border border-orange-200"
+                      >
+                        {risk}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recommendations */}
+              {pair.recommendations && pair.recommendations.length > 0 && (
+                <div className="pt-2 border-t border-slate-100">
+                  <div className="text-xs font-semibold text-indigo-700 mb-1">💡 추천사항</div>
+                  <ul className="space-y-1">
+                    {pair.recommendations.map((rec, i) => (
+                      <li key={i} className="text-xs text-slate-600 pl-3">
+                        • {rec}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+  
+  const NoInfoMessage = () => (
+    <p className="text-sm text-slate-500 text-center py-8">
+      선택한 멤버의 궁합 정보가 없습니다.
+    </p>
+  );
 
   return (
     <div className="space-y-4">
@@ -65,117 +190,18 @@ export function CompatibilityDetails({ pairs, members }: Props) {
 
       {/* 궁합 카드 목록 */}
       {filteredPairs.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-8">
-          선택한 멤버의 궁합 정보가 없습니다.
-        </p>
+        <NoInfoMessage />
       ) : (
-        <div className="space-y-3">
-          {filteredPairs.map((pair, index) => {
-            const memberAName = getMemberName(pair.memberA);
-            const memberBName = getMemberName(pair.memberB);
-            const scoreColor = getScoreColor(pair.score);
-
-            // 선택된 멤버가 앞에 오도록 순서 조정
-            const isASelected = selectedMemberId === pair.memberA;
-            const isBSelected = selectedMemberId === pair.memberB;
-            const firstName = isBSelected ? memberBName : memberAName;
-            const secondName = isBSelected ? memberAName : memberBName;
-
-            return (
-              <div key={`${pair.memberA}-${pair.memberB}-${index}`} className="border border-slate-200 rounded-lg p-4 space-y-3">
-                {/* 헤더 */}
-                <div className="flex items-center justify-between">
-                  <h5 className="font-semibold text-lg">
-                    {firstName} ↔ {secondName}
-                  </h5>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-1 rounded-full border ${scoreColor}`}>
-                      {getScoreLabel(pair.score)}
-                    </span>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold text-indigo-600">{pair.score}</span>
-                      <span className="text-xs text-slate-400">/100</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Breakdown */}
-                {pair.breakdown && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                    <BreakdownItem
-                      label="오행 조화"
-                      value={pair.breakdown.elementHarmony}
-                      max={20}
-                    />
-                    <BreakdownItem
-                      label="간지 조화"
-                      value={pair.breakdown.ganjiHarmony}
-                      max={25}
-                    />
-                    <BreakdownItem
-                      label="역할 시너지"
-                      value={pair.breakdown.roleCompatibility}
-                      max={15}
-                    />
-                    <BreakdownItem
-                      label="기운 균형"
-                      value={pair.breakdown.elementBalance}
-                      max={10}
-                    />
-                  </div>
-                )}
-
-                {/* Strengths */}
-                {pair.strengths.length > 0 && (
-                  <div>
-                    <div className="text-xs font-semibold text-green-700 mb-1">💚 강점</div>
-                    <div className="flex flex-wrap gap-1">
-                      {pair.strengths.map((strength, i) => (
-                        <span
-                          key={i}
-                          className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200"
-                        >
-                          {strength}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Risks */}
-                {pair.risks.length > 0 && (
-                  <div>
-                    <div className="text-xs font-semibold text-orange-700 mb-1">⚠️ 주의사항</div>
-                    <div className="flex flex-wrap gap-1">
-                      {pair.risks.map((risk, i) => (
-                        <span
-                          key={i}
-                          className="text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded border border-orange-200"
-                        >
-                          {risk}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Recommendations */}
-                {pair.recommendations && pair.recommendations.length > 0 && (
-                  <div className="pt-2 border-t border-slate-100">
-                    <div className="text-xs font-semibold text-indigo-700 mb-1">💡 추천사항</div>
-                    <ul className="space-y-1">
-                      {pair.recommendations.map((rec, i) => (
-                        <li key={i} className="text-xs text-slate-600 pl-3">
-                          • {rec}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <LockedSection
+          title="팀원 간 궁합 상세 분석"
+          previewText="누가 누구와 잘 맞는지, 어떤 점을 주의해야 하는지 구체적인 분석을 확인하세요"
+          donated={donated}
+          teamId={teamId}
+          shareToken={shareToken}
+          preview={renderPairCards(filteredPairs.slice(0, 1))}
+        >
+          {renderPairCards(filteredPairs.slice(1))}
+        </LockedSection>
       )}
     </div>
   );
